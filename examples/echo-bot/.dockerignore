@@ -1,0 +1,14 @@
+.gradle
+build
+**/build
+.gradle
+.gradle*
+**/.gradle
+**/out
+**/tmp
+**/*.iml
+**/.idea
+**/.DS_Store
+.git
+.gitignore
+.env

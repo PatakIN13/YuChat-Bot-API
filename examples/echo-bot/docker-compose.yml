@@ -1,0 +1,15 @@
+version: "3.8"
+services:
+  echo-bot:
+    build:
+      context: ../..
+      dockerfile: examples/echo-bot/Dockerfile
+    image: yuchat/echo-bot:latest
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      - YUCHAT_BOT_TOKEN
+      - YUCHAT_BASE_URL
+    volumes:
+      - ./logs:/app/logs
+    command: ["/app/bin/echo-bot"]

@@ -1,0 +1,15 @@
+version: "3.8"
+services:
+  file-upload-bot:
+    build:
+      context: ../..
+      dockerfile: examples/file-upload-bot/Dockerfile
+    image: yuchat/file-upload-bot:latest
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      - YUCHAT_BOT_TOKEN
+      - YUCHAT_BASE_URL
+    volumes:
+      - ./logs:/app/logs
+    command: ["/app/bin/file-upload-bot"]
