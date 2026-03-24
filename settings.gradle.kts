@@ -1,9 +1,7 @@
 pluginManagement {
     repositories {
-        maven {
-            name = "rt-safe-maven-central"
-            url = uri("https://repository.rt.ru/repository/maven-repo.maven.apache.org")
-        }
+        mavenCentral()
+        gradlePluginPortal()
     }
 }
 
