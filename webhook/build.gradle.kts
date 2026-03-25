@@ -9,7 +9,7 @@ plugins {
 val ktorVersion = "2.3.7"
 
 dependencies {
-    api(project(":core"))
+    api(project(":yuchatbotapi-core"))
     implementation("io.ktor:ktor-server-core:$ktorVersion")
     implementation("io.ktor:ktor-server-cio:$ktorVersion")
     implementation("io.ktor:ktor-server-content-negotiation:$ktorVersion")

@@ -4,7 +4,7 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":java-api"))
+    implementation(project(":yuchatbotapi-java"))
 }
 
 application {
