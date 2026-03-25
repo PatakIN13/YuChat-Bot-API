@@ -35,8 +35,7 @@ fun main() = runBlocking {
     println("Test bot started. Send /help to see commands.")
 
     val polling = client.startPolling(PollingOptions(apiVersion = 1)) {
-        onMessage { update ->
-            val msg = update.newChatMessage ?: return@onMessage
+        onMessage { msg ->
             val text = msg.text.trim()
             if (text.isBlank()) return@onMessage
             val ws = msg.workspaceId

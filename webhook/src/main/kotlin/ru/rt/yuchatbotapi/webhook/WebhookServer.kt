@@ -12,6 +12,7 @@ import io.ktor.server.routing.*
 import kotlinx.serialization.json.Json
 import org.slf4j.LoggerFactory
 import ru.rt.yuchatbotapi.api.YuChatBotClient
+import ru.rt.yuchatbotapi.handler.UpdateDispatcher
 import ru.rt.yuchatbotapi.model.SetWebhookRequest
 import ru.rt.yuchatbotapi.model.UpdateV1
 import ru.rt.yuchatbotapi.model.UpdateV2
@@ -26,7 +27,7 @@ import ru.rt.yuchatbotapi.model.UpdateV2
  *
  * server.onUpdateV1 { update ->
  *     val msg = update.newChatMessage ?: return@onUpdateV1
- *     bot.messages.send(msg.workspaceId, msg.chatId, "Echo: ${msg.markdown}")
+ *     bot.messages.send(msg.workspaceId, msg.chatId, "Echo: ${msg.text}")
  * }
  *
  * server.start(wait = true)
@@ -65,6 +66,28 @@ class WebhookServer(
     /** Регистрация обработчика ошибок */
     fun onError(handler: suspend (Throwable) -> Unit) {
         errorHandler = handler
+    }
+
+    /**
+     * Регистрация обработчиков через DSL (аналогично polling).
+     *
+     * ```kotlin
+     * server.handlers {
+     *     onMessage { msg ->
+     *         msg.reply(bot, "Echo: ${msg.text}")
+     *     }
+     *     onCommand("help") { msg, args ->
+     *         msg.answer(bot, "Справка...")
+     *     }
+     *     onError { e -> e.printStackTrace() }
+     * }
+     * ```
+     */
+    fun handlers(configure: UpdateDispatcher.() -> Unit) {
+        val dispatcher = UpdateDispatcher().apply(configure)
+        handlerV1 = { update -> dispatcher.dispatchV1(update) }
+        handlerV2 = { update -> dispatcher.dispatchV2(update) }
+        dispatcher.onError?.let { handler -> errorHandler = handler }
     }
 
     /**

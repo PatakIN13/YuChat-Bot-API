@@ -3,10 +3,9 @@ package ru.rt.yuchatbotapi.java
 import kotlinx.coroutines.*
 import org.slf4j.LoggerFactory
 import ru.rt.yuchatbotapi.api.YuChatBotClient
-import ru.rt.yuchatbotapi.model.UpdateSetting
-import ru.rt.yuchatbotapi.model.UpdateV1
-import ru.rt.yuchatbotapi.model.UpdateV2
+import ru.rt.yuchatbotapi.model.*
 import ru.rt.yuchatbotapi.polling.PollingOptions
+import java.util.function.BiConsumer
 import java.util.function.Consumer
 
 /**
@@ -34,17 +33,21 @@ class LongPollingJavaBot @JvmOverloads constructor(
 
     // V1 handlers
     private var onUpdateV1: Consumer<UpdateV1>? = null
-    private var onMessageV1: Consumer<UpdateV1>? = null
-    private var onInviteV1: Consumer<UpdateV1>? = null
-    private var onJoinV1: Consumer<UpdateV1>? = null
-    private var onLeaveV1: Consumer<UpdateV1>? = null
+    private var onMessageV1: Consumer<NewChatMessage>? = null
+    private var onInviteV1: Consumer<InviteToChat>? = null
+    private var onJoinV1: Consumer<JoinedToChat>? = null
+    private var onLeaveV1: Consumer<LeftFromChat>? = null
 
     // V2 handlers
     private var onUpdateV2: Consumer<UpdateV2>? = null
-    private var onMessageV2: Consumer<UpdateV2>? = null
-    private var onNotificationV2: Consumer<UpdateV2>? = null
-    private var onMessageActionV2: Consumer<UpdateV2>? = null
-    private var onWorkspaceInviteV2: Consumer<UpdateV2>? = null
+    private var onMessageV2: Consumer<Message>? = null
+    private var onNotificationV2: Consumer<Notification>? = null
+    private var onMessageActionV2: Consumer<MessageAction>? = null
+    private var onWorkspaceInviteV2: Consumer<WorkspaceInvite>? = null
+
+    // Command handlers
+    private val commandsV1 = mutableMapOf<String, BiConsumer<NewChatMessage, List<String>>>()
+    private val commandsV2 = mutableMapOf<String, BiConsumer<Message, List<String>>>()
 
     private var onError: Consumer<Throwable>? = null
 
@@ -54,16 +57,21 @@ class LongPollingJavaBot @JvmOverloads constructor(
     fun onUpdate(handler: Consumer<UpdateV1>) { onUpdateV1 = handler }
 
     /** Обработчик нового сообщения (v1) */
-    fun onMessage(handler: Consumer<UpdateV1>) { onMessageV1 = handler }
+    fun onMessage(handler: Consumer<NewChatMessage>) { onMessageV1 = handler }
 
     /** Обработчик приглашения в чат (v1) */
-    fun onInvite(handler: Consumer<UpdateV1>) { onInviteV1 = handler }
+    fun onInvite(handler: Consumer<InviteToChat>) { onInviteV1 = handler }
 
     /** Обработчик присоединения к чату (v1) */
-    fun onJoin(handler: Consumer<UpdateV1>) { onJoinV1 = handler }
+    fun onJoin(handler: Consumer<JoinedToChat>) { onJoinV1 = handler }
 
     /** Обработчик выхода из чата (v1) */
-    fun onLeave(handler: Consumer<UpdateV1>) { onLeaveV1 = handler }
+    fun onLeave(handler: Consumer<LeftFromChat>) { onLeaveV1 = handler }
+
+    /** Обработчик команды (v1) */
+    fun onCommand(command: String, handler: BiConsumer<NewChatMessage, List<String>>) {
+        commandsV1[command] = handler
+    }
 
     // ── V2 handlers ──
 
@@ -71,16 +79,21 @@ class LongPollingJavaBot @JvmOverloads constructor(
     fun onUpdateV2(handler: Consumer<UpdateV2>) { onUpdateV2 = handler }
 
     /** Обработчик сообщения (v2) */
-    fun onMessageV2(handler: Consumer<UpdateV2>) { onMessageV2 = handler }
+    fun onMessageV2(handler: Consumer<Message>) { onMessageV2 = handler }
 
     /** Обработчик уведомления (v2) */
-    fun onNotification(handler: Consumer<UpdateV2>) { onNotificationV2 = handler }
+    fun onNotification(handler: Consumer<Notification>) { onNotificationV2 = handler }
 
     /** Обработчик действия с сообщением (v2) */
-    fun onMessageAction(handler: Consumer<UpdateV2>) { onMessageActionV2 = handler }
+    fun onMessageAction(handler: Consumer<MessageAction>) { onMessageActionV2 = handler }
 
     /** Обработчик приглашения в воркспейс (v2) */
-    fun onWorkspaceInvite(handler: Consumer<UpdateV2>) { onWorkspaceInviteV2 = handler }
+    fun onWorkspaceInvite(handler: Consumer<WorkspaceInvite>) { onWorkspaceInviteV2 = handler }
+
+    /** Обработчик команды (v2) */
+    fun onCommandV2(command: String, handler: BiConsumer<Message, List<String>>) {
+        commandsV2[command] = handler
+    }
 
     /** Обработчик ошибок */
     fun onError(handler: Consumer<Throwable>) { onError = handler }
@@ -174,21 +187,40 @@ class LongPollingJavaBot @JvmOverloads constructor(
 
     private fun dispatchV1(update: UpdateV1) {
         onUpdateV1?.accept(update)
-        when {
-            update.newChatMessage != null -> onMessageV1?.accept(update)
-            update.inviteToChat != null -> onInviteV1?.accept(update)
-            update.joinedToChat != null -> onJoinV1?.accept(update)
-            update.leftFromChat != null -> onLeaveV1?.accept(update)
+        update.newChatMessage?.let { msg ->
+            if (!tryDispatchCommand(msg.text, msg, commandsV1)) {
+                onMessageV1?.accept(msg)
+            }
         }
+        update.inviteToChat?.let { onInviteV1?.accept(it) }
+        update.joinedToChat?.let { onJoinV1?.accept(it) }
+        update.leftFromChat?.let { onLeaveV1?.accept(it) }
     }
 
     private fun dispatchV2(update: UpdateV2) {
         onUpdateV2?.accept(update)
-        when {
-            update.message != null -> onMessageV2?.accept(update)
-            update.notification != null -> onNotificationV2?.accept(update)
-            update.messageAction != null -> onMessageActionV2?.accept(update)
-            update.workspaceInvite != null -> onWorkspaceInviteV2?.accept(update)
+        update.message?.let { msg ->
+            if (!tryDispatchCommand(msg.content.text, msg, commandsV2)) {
+                onMessageV2?.accept(msg)
+            }
         }
+        update.notification?.let { onNotificationV2?.accept(it) }
+        update.messageAction?.let { onMessageActionV2?.accept(it) }
+        update.workspaceInvite?.let { onWorkspaceInviteV2?.accept(it) }
+    }
+
+    private fun <T> tryDispatchCommand(
+        text: String?,
+        payload: T,
+        commands: Map<String, BiConsumer<T, List<String>>>
+    ): Boolean {
+        if (text == null || commands.isEmpty()) return false
+        val trimmed = text.trimStart()
+        if (!trimmed.startsWith("/")) return false
+        val parts = trimmed.split("\\s+".toRegex())
+        val cmd = parts[0].removePrefix("/")
+        val handler = commands[cmd] ?: return false
+        handler.accept(payload, parts.drop(1))
+        return true
     }
 }

@@ -11,7 +11,7 @@ import java.io.Closeable
  * val bot = YuChatBotClient("your-jwt-token")
  *
  * // Отправка сообщения (v1)
- * bot.messages.send(workspaceId = "ws-1", chatId = "chat-1", markdown = "Привет!")
+ * bot.messages.send(workspaceId = "ws-1", chatId = "chat-1", text = "Привет!")
  *
  * // Закрепление (v2)
  * bot.messages.pin(chatId = "chat-1", messageId = "msg-1")

@@ -37,14 +37,14 @@ includeBuild("/path/to/yuchatbotapi")
 // build.gradle.kts
 dependencies {
     // Для Kotlin — модели, клиент, все API-методы
-    implementation("ru.rt.yuchatbotapi:yuchatbotapi-core:0.1.1")
+    implementation("ru.rt.yuchatbotapi:yuchatbotapi-core:0.2.0")
 
     // Для Java — вместо core, все методы через CompletableFuture
-    implementation("ru.rt.yuchatbotapi:yuchatbotapi-java:0.1.1")
+    implementation("ru.rt.yuchatbotapi:yuchatbotapi-java:0.2.0")
 
     // Опционально — выберите один из способов получения обновлений:
-    implementation("ru.rt.yuchatbotapi:yuchatbotapi-polling:0.1.1")   // long-polling + DSL диспетчер
-    implementation("ru.rt.yuchatbotapi:yuchatbotapi-webhook:0.1.1")    // встроенный webhook-сервер
+    implementation("ru.rt.yuchatbotapi:yuchatbotapi-polling:0.2.0")   // long-polling + DSL диспетчер
+    implementation("ru.rt.yuchatbotapi:yuchatbotapi-webhook:0.2.0")    // встроенный webhook-сервер
 }
 ```
 
@@ -113,15 +113,21 @@ SendMessageResponse msg = bot.messages.send("workspace-id", "chat-id", "Прив
 
 **Kotlin v2 (расширенный — с кнопками):**
 ```kotlin
+import ru.rt.yuchatbotapi.model.buttonBar
+
 bot.messages.sendV2(
+    workspaceId = "workspace-id",
     chatId = "chat-id",
     text = "Выберите действие",
-    buttons = ButtonBar(rows = listOf(
-        ButtonGroup(buttons = listOf(
-            CommandButton(text = "Помощь", command = "/help"),
-            LinkButton(text = "Документация", url = "https://docs.example.com")
-        ))
-    ))
+    buttonBar = buttonBar {
+        row {
+            command("Помощь", "help")
+            command("Отмена", "cancel")
+        }
+        row {
+            link("Документация", "https://docs.example.com")
+        }
+    }
 )
 ```
 
@@ -173,23 +179,22 @@ println("Bot: ${me.name}, scopes: ${me.scopes}")
 ## Long Polling
 
 ```kotlin
+import ru.rt.yuchatbotapi.api.answer
 import ru.rt.yuchatbotapi.polling.PollingOptions
-import ru.rt.yuchatbotapi.polling.startPolling
+import ru.rt.yuchatbotapi.polling.runPollingBot
 
-val bot = YuChatBotClient("token")
-
-bot.startPolling(PollingOptions(apiVersion = 1)) {
-    onMessage { update ->
-        val msg = update.newChatMessage ?: return@onMessage
-        bot.messages.send(
-            workspaceId = msg.workspaceId,
-            chatId = msg.chatId,
-            text = "Echo: ${msg.text}"
-        )
+// Минимальный бот — конфигурация загружается автоматически из bot.properties
+fun main() = runPollingBot(PollingOptions(apiVersion = 1)) { client ->
+    onMessage { msg ->
+        msg.answer(client, "Echo: ${msg.text}")
     }
 
-    onInvite { update ->
-        println("Invited to chat: ${update.inviteToChat?.chatId}")
+    onCommand("help") { msg, args ->
+        msg.answer(client, "Справка: ...")
+    }
+
+    onInvite { invite ->
+        println("Invited to chat: ${invite.chatId}")
     }
 
     onError { e ->
@@ -201,18 +206,20 @@ bot.startPolling(PollingOptions(apiVersion = 1)) {
 ### Polling v2 (расширенные обновления)
 
 ```kotlin
-bot.startPolling(PollingOptions(apiVersion = 2)) {
-    onNotification { update ->
-        val notification = update.notification ?: return@onNotification
+runPollingBot(PollingOptions(apiVersion = 2)) { client ->
+    onMessageV2 { msg ->
+        println("New message: ${msg.text}")  // shortcut для msg.content.text
+    }
+
+    onNotification { notification ->
         when {
-            notification.newMessage != null -> {
-                val msg = notification.newMessage!!
-                println("New message: ${msg.text}")
-            }
-            notification.chatArchived != null -> {
-                println("Chat archived: ${notification.chatArchived!!.chatId}")
-            }
+            notification.chatArchivedEvent != null ->
+                println("Chat archived: ${notification.chatArchivedEvent!!.chatId}")
         }
+    }
+
+    onMessageAction { action ->
+        println("Button pressed: ${action.pressedButtonCommand?.commandKey}")
     }
 }
 ```
@@ -235,6 +242,7 @@ PollingOptions(
 ## Webhook
 
 ```kotlin
+import ru.rt.yuchatbotapi.api.answer
 import ru.rt.yuchatbotapi.webhook.WebhookServer
 
 val bot = YuChatBotClient("token")
@@ -245,20 +253,65 @@ val server = WebhookServer(
     secretToken = "my-secret"
 )
 
-server.onUpdateV1 { update ->
-    val msg = update.newChatMessage ?: return@onUpdateV1
-    bot.messages.send(msg.workspaceId, msg.chatId, "Got it!")
+// DSL-обработчики (как в polling)
+server.handlers {
+    onMessage { msg ->
+        msg.answer(bot, "Got it!")
+    }
+
+    onCommand("help") { msg, _ ->
+        msg.answer(bot, "Справка...")
+    }
+
+    onError { e ->
+        System.err.println("Webhook error: ${e.message}")
+    }
 }
 
-server.onError { e ->
-    System.err.println("Webhook error: ${e.message}")
-}
-
-// Регистрирует webhook URL и запускает сервер
 server.start(
     webhookUrl = "https://mybot.example.com/webhook",
     wait = true
 )
+```
+
+## Удобства SDK
+
+### BotConfig — автоматическая загрузка конфигурации
+
+```kotlin
+import ru.rt.yuchatbotapi.api.BotConfig
+
+val token = BotConfig.requireToken()         // из env или bot.properties
+val client = BotConfig.createClient()        // автоматически настроенный клиент
+val custom = BotConfig.env("MY_VAR", "my.prop")  // произвольные параметры
+```
+
+### WorkspaceScope — без повторения workspaceId
+
+```kotlin
+val ws = client.workspace("workspace-id")
+ws.sendMessage("chat-id", "Привет!")
+ws.listMembers()
+ws.uploadFile(file)
+```
+
+### reply() / answer() — ответ на сообщение
+
+```kotlin
+onMessage { msg ->
+    msg.reply(client, "Ответ с цитированием")   // reply с replyTo
+    msg.answer(client, "Просто в тот же чат")    // без цитирования
+}
+```
+
+### Пагинация через Flow
+
+```kotlin
+import ru.rt.yuchatbotapi.api.getWorkspaceChatsFlow
+
+client.chats.getWorkspaceChatsFlow("ws-id").collect { chatId ->
+    println(chatId)
+}
 ```
 
 ## Архитектура API

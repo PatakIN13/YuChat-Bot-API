@@ -171,9 +171,9 @@ class ChatsApi internal constructor(private val client: YuChatHttpClient) {
     }
 
     /** Создание чата событий (v2) */
-    suspend fun createUserEventsChat(workspaceId: String, eventsType: String? = null): CreateChatResponse {
+    suspend fun createUserEventsChat(workspaceId: String, eventsType: EventsType? = null): CreateChatResponse {
         @Serializable
-        data class Req(val workspaceId: String, val eventsType: String? = null)
+        data class Req(val workspaceId: String, val eventsType: EventsType? = null)
         return client.post("/public/v2/getOrCreateUserEventsChat", Req(workspaceId, eventsType))
     }
 
