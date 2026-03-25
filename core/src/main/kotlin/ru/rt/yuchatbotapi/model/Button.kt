@@ -57,3 +57,52 @@ data class LinkButton(
     val displayText: String,
     val link: String
 )
+
+// ── DSL Builder ──
+
+/**
+ * DSL для создания [ButtonBar].
+ *
+ * ```kotlin
+ * val bar = buttonBar {
+ *     row {
+ *         command("Да", "confirm")
+ *         command("Нет", "cancel")
+ *     }
+ *     row {
+ *         link("Документация", "https://docs.example.com")
+ *     }
+ * }
+ * ```
+ */
+fun buttonBar(init: ButtonBarBuilder.() -> Unit): ButtonBar =
+    ButtonBarBuilder().apply(init).build()
+
+/** Билдер для [ButtonBar]. */
+class ButtonBarBuilder {
+    private val groups = mutableListOf<ButtonGroup>()
+
+    /** Добавляет горизонтальную строку кнопок. */
+    fun row(init: ButtonGroupBuilder.() -> Unit) {
+        groups += ButtonGroupBuilder().apply(init).build()
+    }
+
+    internal fun build() = ButtonBar(groups)
+}
+
+/** Билдер для строки кнопок ([ButtonGroup]). */
+class ButtonGroupBuilder {
+    private val buttons = mutableListOf<Button>()
+
+    /** Кнопка-команда: при нажатии генерирует [MessageAction]. */
+    fun command(text: String, key: String) {
+        buttons += Button(commandButton = CommandButton(text, key))
+    }
+
+    /** Кнопка-ссылка: при нажатии открывает URL. */
+    fun link(text: String, url: String) {
+        buttons += Button(linkButton = LinkButton(text, url))
+    }
+
+    internal fun build() = ButtonGroup(buttons)
+}

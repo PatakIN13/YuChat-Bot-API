@@ -109,7 +109,7 @@ class ChatsJavaApi internal constructor(private val api: ChatsApi) {
     }
 
     @JvmOverloads
-    fun createUserEventsChat(workspaceId: String, eventsType: String? = null): CompletableFuture<CreateChatResponse> = async {
+    fun createUserEventsChat(workspaceId: String, eventsType: EventsType? = null): CompletableFuture<CreateChatResponse> = async {
         api.createUserEventsChat(workspaceId, eventsType)
     }
 

@@ -3,6 +3,7 @@ package ru.rt.yuchatbotapi.polling
 import kotlinx.coroutines.*
 import org.slf4j.LoggerFactory
 import ru.rt.yuchatbotapi.api.YuChatBotClient
+import ru.rt.yuchatbotapi.handler.UpdateDispatcher
 import ru.rt.yuchatbotapi.model.UpdateSetting
 
 /**

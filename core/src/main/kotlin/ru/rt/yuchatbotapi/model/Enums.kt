@@ -98,7 +98,18 @@ enum class UpdateSetting {
     /** Уведомления (участники, чаты, реакции). */
     NOTIFICATION,
     /** Приглашения в воркспейс. */
-    WORKSPACE_INVITE
+    WORKSPACE_INVITE;
+
+    companion object {
+        /** Все типы обновлений. */
+        val ALL = entries
+    }
+}
+
+/** Тип событий для чата событий (v2). */
+@Serializable
+enum class EventsType {
+    CALLS, MENTIONS
 }
 
 /** Область видимости бота (v2). */

@@ -15,7 +15,7 @@ data class WebhookInfo(
     val pendingUpdateCount: Int? = null,
     val lastErrorDate: String? = null,
     val lastErrorMessage: String? = null,
-    val updateTypes: List<String>? = null
+    val updateTypes: List<UpdateSetting>? = null
 )
 
 /**
@@ -31,7 +31,7 @@ data class SetWebhookRequest(
     val url: String,
     val certificate: String? = null,
     val secretToken: String? = null,
-    val updateTypes: List<String>? = null
+    val updateTypes: List<UpdateSetting>? = null
 )
 
 /**
