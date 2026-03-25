@@ -39,7 +39,7 @@ class MemberSerializationTest {
         """.trimIndent()
 
         val member = json.decodeFromString<Member>(raw)
-        assertEquals("m1", member.memberId)
+        assertEquals(MembershipId("m1"), member.memberId)
         assertEquals("Иванов Иван", member.profile?.fullName)
         assertEquals(AccountType.REGULAR, member.profile?.type)
         assertEquals("Разработчик", member.profile?.details?.position)
@@ -80,7 +80,7 @@ class MemberSerializationTest {
         """.trimIndent()
 
         val info = json.decodeFromString<MemberInfo>(raw)
-        assertEquals("gIQffAsGi8", info.membershipId)
+        assertEquals(MembershipId("gIQffAsGi8"), info.membershipId)
         assertEquals("Иванов Иван", info.profile.fullName)
         assertEquals(WorkspaceRole.ADMIN, info.workspaceRole)
         assertEquals(true, info.presence.online)

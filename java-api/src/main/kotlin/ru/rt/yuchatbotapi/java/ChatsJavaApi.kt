@@ -20,11 +20,11 @@ class ChatsJavaApi internal constructor(private val api: ChatsApi) {
         announce: Boolean? = null,
         description: String? = null
     ): CompletableFuture<CreateChatResponse> = async {
-        api.createWorkspace(workspaceId, name, type, participants, announce, description)
+        api.createWorkspace(WorkspaceId(workspaceId), name, type, participants?.map { MembershipId(it) }, announce, description)
     }
 
     fun createPersonal(workspaceId: String, participant: String): CompletableFuture<CreateChatResponse> = async {
-        api.createPersonal(workspaceId, participant)
+        api.createPersonal(WorkspaceId(workspaceId), MembershipId(participant))
     }
 
     fun createThread(
@@ -32,7 +32,7 @@ class ChatsJavaApi internal constructor(private val api: ChatsApi) {
         chatId: String,
         parentMessageId: String
     ): CompletableFuture<CreateChatResponse> = async {
-        api.createThread(workspaceId, chatId, parentMessageId)
+        api.createThread(WorkspaceId(workspaceId), ChatId(chatId), parentMessageId)
     }
 
     @JvmOverloads
@@ -41,7 +41,7 @@ class ChatsJavaApi internal constructor(private val api: ChatsApi) {
         chatIds: List<String>? = null,
         maxCount: Int? = null
     ): CompletableFuture<ListWorkspaceChatsResponse> = async {
-        api.listWorkspace(workspaceId, chatIds, maxCount)
+        api.listWorkspace(WorkspaceId(workspaceId), chatIds?.map { ChatId(it) }, maxCount)
     }
 
     fun invite(
@@ -49,7 +49,7 @@ class ChatsJavaApi internal constructor(private val api: ChatsApi) {
         chatId: String,
         memberIds: List<String>
     ): CompletableFuture<InviteToChatResponse> = async {
-        api.invite(workspaceId, chatId, memberIds)
+        api.invite(WorkspaceId(workspaceId), ChatId(chatId), memberIds.map { MembershipId(it) })
     }
 
     fun kick(
@@ -57,7 +57,7 @@ class ChatsJavaApi internal constructor(private val api: ChatsApi) {
         chatId: String,
         memberIds: List<String>
     ): CompletableFuture<KickFromChatResponse> = async {
-        api.kick(workspaceId, chatId, memberIds)
+        api.kick(WorkspaceId(workspaceId), ChatId(chatId), memberIds.map { MembershipId(it) })
     }
 
     // ── v2 ──
@@ -68,7 +68,7 @@ class ChatsJavaApi internal constructor(private val api: ChatsApi) {
         pageSize: Int? = null,
         pageToken: String? = null
     ): CompletableFuture<GetChatsResponse> = async {
-        api.getWorkspaceChats(workspaceId, pageSize, pageToken)
+        api.getWorkspaceChats(WorkspaceId(workspaceId), pageSize, pageToken)
     }
 
     @JvmOverloads
@@ -77,40 +77,40 @@ class ChatsJavaApi internal constructor(private val api: ChatsApi) {
         pageSize: Int? = null,
         pageToken: String? = null
     ): CompletableFuture<GetChatsResponse> = async {
-        api.getMyChats(workspaceId, pageSize, pageToken)
+        api.getMyChats(WorkspaceId(workspaceId), pageSize, pageToken)
     }
 
     fun getInfo(workspaceId: String, chatIds: List<String>): CompletableFuture<List<ChatMembership>> = async {
-        api.getInfo(workspaceId, chatIds)
+        api.getInfo(WorkspaceId(workspaceId), chatIds.map { ChatId(it) })
     }
 
     fun leave(workspaceId: String, chatId: String): CompletableFuture<Void> = asyncVoid {
-        api.leave(workspaceId, chatId)
+        api.leave(WorkspaceId(workspaceId), ChatId(chatId))
     }
 
     fun archive(workspaceId: String, chatId: String): CompletableFuture<Void> = asyncVoid {
-        api.archive(workspaceId, chatId)
+        api.archive(WorkspaceId(workspaceId), ChatId(chatId))
     }
 
     fun unarchive(workspaceId: String, chatId: String): CompletableFuture<Void> = asyncVoid {
-        api.unarchive(workspaceId, chatId)
+        api.unarchive(WorkspaceId(workspaceId), ChatId(chatId))
     }
 
     fun setMemberRole(workspaceId: String, chatId: String, membershipId: String, role: ChatRole): CompletableFuture<Void> = asyncVoid {
-        api.setMemberRole(workspaceId, chatId, membershipId, role)
+        api.setMemberRole(WorkspaceId(workspaceId), ChatId(chatId), MembershipId(membershipId), role)
     }
 
     fun inviteV2(workspaceId: String, chatId: String, membershipIds: List<String>): CompletableFuture<Void> = asyncVoid {
-        api.inviteV2(workspaceId, chatId, membershipIds)
+        api.inviteV2(WorkspaceId(workspaceId), ChatId(chatId), membershipIds.map { MembershipId(it) })
     }
 
     fun kickV2(workspaceId: String, chatId: String, membershipIds: List<String>): CompletableFuture<Void> = asyncVoid {
-        api.kickV2(workspaceId, chatId, membershipIds)
+        api.kickV2(WorkspaceId(workspaceId), ChatId(chatId), membershipIds.map { MembershipId(it) })
     }
 
     @JvmOverloads
     fun createUserEventsChat(workspaceId: String, eventsType: EventsType? = null): CompletableFuture<CreateChatResponse> = async {
-        api.createUserEventsChat(workspaceId, eventsType)
+        api.createUserEventsChat(WorkspaceId(workspaceId), eventsType)
     }
 
     @JvmOverloads
@@ -123,11 +123,11 @@ class ChatsJavaApi internal constructor(private val api: ChatsApi) {
         autoJoinNewMembers: Boolean? = null,
         description: String? = null
     ): CompletableFuture<CreateChatResponse> = async {
-        api.createWorkspaceChatV2(workspaceId, name, workspaceChatType, participants, announce, autoJoinNewMembers, description)
+        api.createWorkspaceChatV2(WorkspaceId(workspaceId), name, workspaceChatType, participants?.map { MembershipId(it) }, announce, autoJoinNewMembers, description)
     }
 
     fun getOrCreatePersonalChat(workspaceId: String, participant: String): CompletableFuture<CreateChatResponse> = async {
-        api.getOrCreatePersonalChat(workspaceId, participant)
+        api.getOrCreatePersonalChat(WorkspaceId(workspaceId), MembershipId(participant))
     }
 
     fun getOrCreateThreadChat(
@@ -135,6 +135,6 @@ class ChatsJavaApi internal constructor(private val api: ChatsApi) {
         parentChatId: String,
         parentMessageId: String
     ): CompletableFuture<CreateChatResponse> = async {
-        api.getOrCreateThreadChat(workspaceId, parentChatId, parentMessageId)
+        api.getOrCreateThreadChat(WorkspaceId(workspaceId), ChatId(parentChatId), parentMessageId)
     }
 }

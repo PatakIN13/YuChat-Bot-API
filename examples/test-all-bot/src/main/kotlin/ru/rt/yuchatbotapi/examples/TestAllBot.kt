@@ -162,7 +162,7 @@ fun main() = runBlocking {
 // Help
 // ═══════════════════════════════════════════════════════════════
 
-suspend fun showHelp(client: YuChatBotClient, ws: String, chatId: String) {
+suspend fun showHelp(client: YuChatBotClient, ws: WorkspaceId, chatId: ChatId) {
     val help = """
 **Тестовый бот — все эндпоинты YuChat API**
         
@@ -250,7 +250,7 @@ suspend fun showHelp(client: YuChatBotClient, ws: String, chatId: String) {
 // Bot
 // ═══════════════════════════════════════════════════════════════
 
-suspend fun testGetMe(client: YuChatBotClient, ws: String, chatId: String) {
+suspend fun testGetMe(client: YuChatBotClient, ws: WorkspaceId, chatId: ChatId) {
     val me = client.bot.getMe()
     client.messages.send(ws, chatId, """
 ✅ **getMe** — OK
@@ -264,30 +264,30 @@ suspend fun testGetMe(client: YuChatBotClient, ws: String, chatId: String) {
 // Messages v1
 // ═══════════════════════════════════════════════════════════════
 
-suspend fun testSend(client: YuChatBotClient, ws: String, chatId: String) {
+suspend fun testSend(client: YuChatBotClient, ws: WorkspaceId, chatId: ChatId) {
     val resp = client.messages.send(ws, chatId, "✅ **send (v1)** — тестовое сообщение")
     client.messages.send(ws, chatId, "✅ **send** — OK, messageId: `${resp.messageId}`")
 }
 
-suspend fun testEdit(client: YuChatBotClient, ws: String, chatId: String) {
+suspend fun testEdit(client: YuChatBotClient, ws: WorkspaceId, chatId: ChatId) {
     val sent = client.messages.send(ws, chatId, "⏳ Это сообщение будет отредактировано...")
     val resp = client.messages.edit(ws, chatId, sent.messageId, "✅ **edit (v1)** — сообщение отредактировано!")
     client.messages.send(ws, chatId, "✅ **edit** — OK, updatedAt: `${resp.updatedAt}`")
 }
 
-suspend fun testDelete(client: YuChatBotClient, ws: String, chatId: String) {
+suspend fun testDelete(client: YuChatBotClient, ws: WorkspaceId, chatId: ChatId) {
     val sent = client.messages.send(ws, chatId, "⏳ Это сообщение будет удалено...")
     val resp = client.messages.delete(ws, chatId, sent.messageId)
     client.messages.send(ws, chatId, "✅ **delete (v1)** — OK, updatedAt: `${resp.updatedAt}`")
 }
 
-suspend fun testForward(client: YuChatBotClient, ws: String, chatId: String, arg: String?) {
+suspend fun testForward(client: YuChatBotClient, ws: WorkspaceId, chatId: ChatId, arg: String?) {
     val targetChatId = arg ?: run {
         client.messages.send(ws, chatId, "⚠️ Укажите targetChatId: `/forward <chatId>`")
         return
     }
     val sent = client.messages.send(ws, chatId, "✅ Это сообщение будет переслано")
-    val resp = client.messages.forward(ws, chatId, sent.messageId, targetChatId, "Пересланное сообщение")
+    val resp = client.messages.forward(ws, chatId, sent.messageId, ChatId(targetChatId), "Пересланное сообщение")
     client.messages.send(ws, chatId, "✅ **forward (v1)** — OK, messageId: `${resp.messageId}`")
 }
 
@@ -295,7 +295,7 @@ suspend fun testForward(client: YuChatBotClient, ws: String, chatId: String, arg
 // Messages v2
 // ═══════════════════════════════════════════════════════════════
 
-suspend fun testSendV2(client: YuChatBotClient, ws: String, chatId: String) {
+suspend fun testSendV2(client: YuChatBotClient, ws: WorkspaceId, chatId: ChatId) {
     val resp = client.messages.sendV2(
         ws, chatId,
         text = "✅ **sendV2** — сообщение с кнопками",
@@ -311,58 +311,58 @@ suspend fun testSendV2(client: YuChatBotClient, ws: String, chatId: String) {
     client.messages.send(ws, chatId, "✅ **sendV2** — OK, messageId: `${resp.messageId}`")
 }
 
-suspend fun testEditV2(client: YuChatBotClient, ws: String, chatId: String) {
+suspend fun testEditV2(client: YuChatBotClient, ws: WorkspaceId, chatId: ChatId) {
     val sent = client.messages.sendV2(ws, chatId, text = "⏳ Это сообщение будет отредактировано (v2)...")
     client.messages.editV2(ws, chatId, sent.messageId, text = "✅ **editV2** — сообщение отредактировано!")
     client.messages.send(ws, chatId, "✅ **editV2** — OK")
 }
 
-suspend fun testDeleteV2(client: YuChatBotClient, ws: String, chatId: String) {
+suspend fun testDeleteV2(client: YuChatBotClient, ws: WorkspaceId, chatId: ChatId) {
     val sent = client.messages.sendV2(ws, chatId, text = "⏳ Это сообщение будет удалено (v2)...")
     val resp = client.messages.deleteV2(ws, chatId, listOf(sent.messageId))
     client.messages.send(ws, chatId, "✅ **deleteV2** — OK, deletedCount: `${resp.deletedMessageIds.size}`")
 }
 
-suspend fun testForwardV2(client: YuChatBotClient, ws: String, chatId: String, arg: String?) {
+suspend fun testForwardV2(client: YuChatBotClient, ws: WorkspaceId, chatId: ChatId, arg: String?) {
     val targetChatId = arg ?: run {
         client.messages.send(ws, chatId, "⚠️ Укажите targetChatId: `/forwardv2 <chatId>`")
         return
     }
     val sent = client.messages.sendV2(ws, chatId, text = "✅ Это сообщение будет переслано (v2)")
-    val resp = client.messages.forwardV2(ws, chatId, targetChatId, listOf(sent.messageId), "Пересланное v2")
+    val resp = client.messages.forwardV2(ws, chatId, ChatId(targetChatId), listOf(sent.messageId), "Пересланное v2")
     client.messages.send(ws, chatId, "✅ **forwardV2** — OK, messageId: `${resp.messageId}`")
 }
 
-suspend fun testGetMessages(client: YuChatBotClient, ws: String, chatId: String) {
+suspend fun testGetMessages(client: YuChatBotClient, ws: WorkspaceId, chatId: ChatId) {
     val resp = client.messages.getMessages(ws, chatId, pageSize = 5)
     val count = resp.messages.size
     client.messages.send(ws, chatId, "✅ **getMessages** — OK, получено $count сообщений")
 }
 
-suspend fun testGetMessageById(client: YuChatBotClient, ws: String, chatId: String, msgId: String) {
+suspend fun testGetMessageById(client: YuChatBotClient, ws: WorkspaceId, chatId: ChatId, msgId: ChatMessageId) {
     val msg = client.messages.getById(ws, chatId, msgId)
     client.messages.send(ws, chatId, "✅ **getMessageById** — OK, membershipId: `${msg.membershipId}`, text: `${msg.content.text ?: "(empty)"}`")
 }
 
-suspend fun testPin(client: YuChatBotClient, ws: String, chatId: String, arg: String?) {
+suspend fun testPin(client: YuChatBotClient, ws: WorkspaceId, chatId: ChatId, arg: String?) {
     val messageId = arg ?: run {
         client.messages.send(ws, chatId, "⚠️ Укажите messageId: `/pin <messageId>`")
         return
     }
-    client.messages.pin(ws, chatId, messageId)
+    client.messages.pin(ws, chatId, ChatMessageId(messageId))
     client.messages.send(ws, chatId, "✅ **pin** — OK, закреплено: `$messageId`")
 }
 
-suspend fun testUnpin(client: YuChatBotClient, ws: String, chatId: String, arg: String?) {
+suspend fun testUnpin(client: YuChatBotClient, ws: WorkspaceId, chatId: ChatId, arg: String?) {
     val messageId = arg ?: run {
         client.messages.send(ws, chatId, "⚠️ Укажите messageId: `/unpin <messageId>`")
         return
     }
-    client.messages.unpin(ws, chatId, messageId)
+    client.messages.unpin(ws, chatId, ChatMessageId(messageId))
     client.messages.send(ws, chatId, "✅ **unpin** — OK, откреплено: `$messageId`")
 }
 
-suspend fun testReaction(client: YuChatBotClient, ws: String, chatId: String, msgId: String, arg: String?) {
+suspend fun testReaction(client: YuChatBotClient, ws: WorkspaceId, chatId: ChatId, msgId: ChatMessageId, arg: String?) {
     val emoji = arg ?: "👍"
     val resp = client.messages.toggleReaction(ws, chatId, msgId, emoji)
     client.messages.send(ws, chatId, "✅ **toggleReaction** — OK, reactionAdded: `${resp.reactionAdded}`, emoji: $emoji")
@@ -372,47 +372,47 @@ suspend fun testReaction(client: YuChatBotClient, ws: String, chatId: String, ms
 // Chats v1
 // ═══════════════════════════════════════════════════════════════
 
-suspend fun testCreateWorkspaceChat(client: YuChatBotClient, ws: String, chatId: String, arg: String?) {
+suspend fun testCreateWorkspaceChat(client: YuChatBotClient, ws: WorkspaceId, chatId: ChatId, arg: String?) {
     val name = arg ?: "TestBot Chat ${System.currentTimeMillis() % 10000}"
     val resp = client.chats.createWorkspace(ws, name = name, type = WorkspaceChatType.PUBLIC)
     client.messages.send(ws, chatId, "✅ **createWorkspace (v1)** — OK, chatId: `${resp.chatId}`")
 }
 
-suspend fun testCreatePersonalChat(client: YuChatBotClient, ws: String, chatId: String, arg: String?) {
+suspend fun testCreatePersonalChat(client: YuChatBotClient, ws: WorkspaceId, chatId: ChatId, arg: String?) {
     val participant = arg ?: run {
         client.messages.send(ws, chatId, "⚠️ Укажите participant: `/createpersonal <userId>`")
         return
     }
-    val resp = client.chats.createPersonal(ws, participant)
+    val resp = client.chats.createPersonal(ws, MembershipId(participant))
     client.messages.send(ws, chatId, "✅ **createPersonal (v1)** — OK, chatId: `${resp.chatId}`")
 }
 
-suspend fun testCreateThread(client: YuChatBotClient, ws: String, chatId: String, msgId: String) {
-    val resp = client.chats.createThread(ws, chatId, msgId)
+suspend fun testCreateThread(client: YuChatBotClient, ws: WorkspaceId, chatId: ChatId, msgId: ChatMessageId) {
+    val resp = client.chats.createThread(ws, chatId, msgId.value)
     client.messages.send(ws, chatId, "✅ **createThread (v1)** — OK, chatId: `${resp.chatId}`")
 }
 
-suspend fun testListWorkspace(client: YuChatBotClient, ws: String, chatId: String) {
+suspend fun testListWorkspace(client: YuChatBotClient, ws: WorkspaceId, chatId: ChatId) {
     val resp = client.chats.listWorkspace(ws, maxCount = 5)
     val count = resp.workspaceChats?.size ?: 0
     client.messages.send(ws, chatId, "✅ **listWorkspace (v1)** — OK, чатов: $count")
 }
 
-suspend fun testInviteV1(client: YuChatBotClient, ws: String, chatId: String, arg: String?) {
+suspend fun testInviteV1(client: YuChatBotClient, ws: WorkspaceId, chatId: ChatId, arg: String?) {
     val memberId = arg ?: run {
         client.messages.send(ws, chatId, "⚠️ Укажите memberId: `/invite <memberId>`")
         return
     }
-    val resp = client.chats.invite(ws, chatId, listOf(memberId))
+    val resp = client.chats.invite(ws, chatId, listOf(MembershipId(memberId)))
     client.messages.send(ws, chatId, "✅ **invite (v1)** — OK, chat: `${resp.chat?.chatId}`")
 }
 
-suspend fun testKickV1(client: YuChatBotClient, ws: String, chatId: String, arg: String?) {
+suspend fun testKickV1(client: YuChatBotClient, ws: WorkspaceId, chatId: ChatId, arg: String?) {
     val memberId = arg ?: run {
         client.messages.send(ws, chatId, "⚠️ Укажите memberId: `/kick <memberId>`")
         return
     }
-    val resp = client.chats.kick(ws, chatId, listOf(memberId))
+    val resp = client.chats.kick(ws, chatId, listOf(MembershipId(memberId)))
     client.messages.send(ws, chatId, "✅ **kick (v1)** — OK, chat: `${resp.chat?.chatId}`")
 }
 
@@ -420,50 +420,50 @@ suspend fun testKickV1(client: YuChatBotClient, ws: String, chatId: String, arg:
 // Chats v2
 // ═══════════════════════════════════════════════════════════════
 
-suspend fun testGetWorkspaceChats(client: YuChatBotClient, ws: String, chatId: String) {
+suspend fun testGetWorkspaceChats(client: YuChatBotClient, ws: WorkspaceId, chatId: ChatId) {
     val resp = client.chats.getWorkspaceChats(ws, pageSize = 5)
     client.messages.send(ws, chatId, "✅ **getWorkspaceChats** — OK, chatIds: ${resp.chatIds.size}")
 }
 
-suspend fun testGetMyChats(client: YuChatBotClient, ws: String, chatId: String) {
+suspend fun testGetMyChats(client: YuChatBotClient, ws: WorkspaceId, chatId: ChatId) {
     val resp = client.chats.getMyChats(ws, pageSize = 5)
     client.messages.send(ws, chatId, "✅ **getMyChats** — OK, chatIds: ${resp.chatIds.size}")
 }
 
-suspend fun testGetChatsInfo(client: YuChatBotClient, ws: String, chatId: String) {
+suspend fun testGetChatsInfo(client: YuChatBotClient, ws: WorkspaceId, chatId: ChatId) {
     val info = client.chats.getInfo(ws, listOf(chatId))
     val first = info.firstOrNull()
     client.messages.send(ws, chatId, "✅ **getChatsInfo** — OK, чатов: ${info.size}, первый: `${first?.chatId}`")
 }
 
-suspend fun testLeaveChat(client: YuChatBotClient, ws: String, chatId: String, arg: String?) {
+suspend fun testLeaveChat(client: YuChatBotClient, ws: WorkspaceId, chatId: ChatId, arg: String?) {
     val targetChat = arg ?: run {
         client.messages.send(ws, chatId, "⚠️ Укажите chatId: `/leavechat <chatId>` (⚠️ бот покинет чат!)")
         return
     }
-    client.chats.leave(ws, targetChat)
+    client.chats.leave(ws, ChatId(targetChat))
     client.messages.send(ws, chatId, "✅ **leaveChat** — OK, покинут чат: `$targetChat`")
 }
 
-suspend fun testArchiveChat(client: YuChatBotClient, ws: String, chatId: String, arg: String?) {
+suspend fun testArchiveChat(client: YuChatBotClient, ws: WorkspaceId, chatId: ChatId, arg: String?) {
     val targetChat = arg ?: run {
         client.messages.send(ws, chatId, "⚠️ Укажите chatId: `/archivechat <chatId>`")
         return
     }
-    client.chats.archive(ws, targetChat)
+    client.chats.archive(ws, ChatId(targetChat))
     client.messages.send(ws, chatId, "✅ **archiveChat** — OK, архивирован: `$targetChat`")
 }
 
-suspend fun testUnarchiveChat(client: YuChatBotClient, ws: String, chatId: String, arg: String?) {
+suspend fun testUnarchiveChat(client: YuChatBotClient, ws: WorkspaceId, chatId: ChatId, arg: String?) {
     val targetChat = arg ?: run {
         client.messages.send(ws, chatId, "⚠️ Укажите chatId: `/unarchivechat <chatId>`")
         return
     }
-    client.chats.unarchive(ws, targetChat)
+    client.chats.unarchive(ws, ChatId(targetChat))
     client.messages.send(ws, chatId, "✅ **unarchiveChat** — OK, разархивирован: `$targetChat`")
 }
 
-suspend fun testSetChatMemberRole(client: YuChatBotClient, ws: String, chatId: String, arg: String?) {
+suspend fun testSetChatMemberRole(client: YuChatBotClient, ws: WorkspaceId, chatId: ChatId, arg: String?) {
     val parts = arg?.split(" ") ?: run {
         client.messages.send(ws, chatId, "⚠️ Укажите: `/setmemberrole <membershipId> <ADMIN|REGULAR>`")
         return
@@ -473,49 +473,49 @@ suspend fun testSetChatMemberRole(client: YuChatBotClient, ws: String, chatId: S
         return
     }
     val role = ChatRole.valueOf(parts[1].uppercase())
-    client.chats.setMemberRole(ws, chatId, parts[0], role)
+    client.chats.setMemberRole(ws, chatId, MembershipId(parts[0]), role)
     client.messages.send(ws, chatId, "✅ **setChatMemberRole** — OK, ${parts[0]} → $role")
 }
 
-suspend fun testInviteV2(client: YuChatBotClient, ws: String, chatId: String, arg: String?) {
+suspend fun testInviteV2(client: YuChatBotClient, ws: WorkspaceId, chatId: ChatId, arg: String?) {
     val membershipId = arg ?: run {
         client.messages.send(ws, chatId, "⚠️ Укажите: `/invitev2 <membershipId>`")
         return
     }
-    client.chats.inviteV2(ws, chatId, listOf(membershipId))
+    client.chats.inviteV2(ws, chatId, listOf(MembershipId(membershipId)))
     client.messages.send(ws, chatId, "✅ **inviteToChat (v2)** — OK")
 }
 
-suspend fun testKickV2(client: YuChatBotClient, ws: String, chatId: String, arg: String?) {
+suspend fun testKickV2(client: YuChatBotClient, ws: WorkspaceId, chatId: ChatId, arg: String?) {
     val membershipId = arg ?: run {
         client.messages.send(ws, chatId, "⚠️ Укажите: `/kickv2 <membershipId>`")
         return
     }
-    client.chats.kickV2(ws, chatId, listOf(membershipId))
+    client.chats.kickV2(ws, chatId, listOf(MembershipId(membershipId)))
     client.messages.send(ws, chatId, "✅ **kickFromChat (v2)** — OK")
 }
 
-suspend fun testCreateEventsChat(client: YuChatBotClient, ws: String, chatId: String) {
+suspend fun testCreateEventsChat(client: YuChatBotClient, ws: WorkspaceId, chatId: ChatId) {
     val resp = client.chats.createUserEventsChat(ws)
     client.messages.send(ws, chatId, "✅ **getOrCreateUserEventsChat** — OK, chatId: `${resp.chatId}`")
 }
 
-suspend fun testCreateWorkspaceChatV2(client: YuChatBotClient, ws: String, chatId: String, arg: String?) {
+suspend fun testCreateWorkspaceChatV2(client: YuChatBotClient, ws: WorkspaceId, chatId: ChatId, arg: String?) {
     val name = arg ?: "TestV2 Chat ${System.currentTimeMillis() % 10000}"
     val resp = client.chats.createWorkspaceChatV2(ws, name, WorkspaceChatType.PUBLIC)
     client.messages.send(ws, chatId, "✅ **createWorkspaceChat (v2)** — OK, chatId: `${resp.chatId}`")
 }
 
-suspend fun testGetOrCreatePersonal(client: YuChatBotClient, ws: String, chatId: String, arg: String?) {
+suspend fun testGetOrCreatePersonal(client: YuChatBotClient, ws: WorkspaceId, chatId: ChatId, arg: String?) {
     val participant = arg ?: run {
         client.messages.send(ws, chatId, "⚠️ Укажите: `/personalbychat <participant>`")
         return
     }
-    val resp = client.chats.getOrCreatePersonalChat(ws, participant)
+    val resp = client.chats.getOrCreatePersonalChat(ws, MembershipId(participant))
     client.messages.send(ws, chatId, "✅ **getOrCreatePersonalChat** — OK, chatId: `${resp.chatId}`")
 }
 
-suspend fun testGetOrCreateThread(client: YuChatBotClient, ws: String, chatId: String, arg: String?) {
+suspend fun testGetOrCreateThread(client: YuChatBotClient, ws: WorkspaceId, chatId: ChatId, arg: String?) {
     val parts = arg?.split(" ") ?: run {
         client.messages.send(ws, chatId, "⚠️ Укажите: `/threadv2 <parentChatId> <parentMsgId>`")
         return
@@ -524,7 +524,7 @@ suspend fun testGetOrCreateThread(client: YuChatBotClient, ws: String, chatId: S
         client.messages.send(ws, chatId, "⚠️ Укажите: `/threadv2 <parentChatId> <parentMsgId>`")
         return
     }
-    val resp = client.chats.getOrCreateThreadChat(ws, parts[0], parts[1])
+    val resp = client.chats.getOrCreateThreadChat(ws, ChatId(parts[0]), parts[1])
     client.messages.send(ws, chatId, "✅ **getOrCreateThreadChat** — OK, chatId: `${resp.chatId}`")
 }
 
@@ -532,17 +532,17 @@ suspend fun testGetOrCreateThread(client: YuChatBotClient, ws: String, chatId: S
 // Members
 // ═══════════════════════════════════════════════════════════════
 
-suspend fun testMemberList(client: YuChatBotClient, ws: String, chatId: String) {
+suspend fun testMemberList(client: YuChatBotClient, ws: WorkspaceId, chatId: ChatId) {
     val members = client.members.list(ws)
     client.messages.send(ws, chatId, "✅ **member.list (v1)** — OK, участников: ${members.size}")
 }
 
-suspend fun testGetMembers(client: YuChatBotClient, ws: String, chatId: String) {
+suspend fun testGetMembers(client: YuChatBotClient, ws: WorkspaceId, chatId: ChatId) {
     val resp = client.members.getMembers(ws, pageSize = 5)
     client.messages.send(ws, chatId, "✅ **getMembers (v2)** — OK, membershipIds: ${resp.membershipIds.size}")
 }
 
-suspend fun testInviteMember(client: YuChatBotClient, ws: String, chatId: String, arg: String?) {
+suspend fun testInviteMember(client: YuChatBotClient, ws: WorkspaceId, chatId: ChatId, arg: String?) {
     val email = arg ?: run {
         client.messages.send(ws, chatId, "⚠️ Укажите email: `/invitemember <email>`")
         return
@@ -551,16 +551,16 @@ suspend fun testInviteMember(client: YuChatBotClient, ws: String, chatId: String
     client.messages.send(ws, chatId, "✅ **inviteMember (v2)** — OK, приглашён: `$email`")
 }
 
-suspend fun testRemoveMember(client: YuChatBotClient, ws: String, chatId: String, arg: String?) {
+suspend fun testRemoveMember(client: YuChatBotClient, ws: WorkspaceId, chatId: ChatId, arg: String?) {
     val membershipId = arg ?: run {
         client.messages.send(ws, chatId, "⚠️ Укажите: `/removemember <membershipId>`")
         return
     }
-    client.members.remove(ws, membershipId)
+    client.members.remove(ws, MembershipId(membershipId))
     client.messages.send(ws, chatId, "✅ **removeMember (v2)** — OK, удалён: `$membershipId`")
 }
 
-suspend fun testSetRole(client: YuChatBotClient, ws: String, chatId: String, arg: String?) {
+suspend fun testSetRole(client: YuChatBotClient, ws: WorkspaceId, chatId: ChatId, arg: String?) {
     val parts = arg?.split(" ") ?: run {
         client.messages.send(ws, chatId, "⚠️ Укажите: `/setrole <membershipId> <ADMIN|REGULAR|OWNER>`")
         return
@@ -570,16 +570,16 @@ suspend fun testSetRole(client: YuChatBotClient, ws: String, chatId: String, arg
         return
     }
     val role = WorkspaceRole.valueOf(parts[1].uppercase())
-    client.members.setRole(ws, parts[0], role)
+    client.members.setRole(ws, MembershipId(parts[0]), role)
     client.messages.send(ws, chatId, "✅ **setWorkspaceMemberRole (v2)** — OK, ${parts[0]} → $role")
 }
 
-suspend fun testGetMembersInfo(client: YuChatBotClient, ws: String, chatId: String, arg: String?) {
+suspend fun testGetMembersInfo(client: YuChatBotClient, ws: WorkspaceId, chatId: ChatId, arg: String?) {
     val membershipId = arg ?: run {
         client.messages.send(ws, chatId, "⚠️ Укажите: `/getmembersinfo <membershipId>`")
         return
     }
-    val info = client.members.getInfo(ws, listOf(membershipId))
+    val info = client.members.getInfo(ws, listOf(MembershipId(membershipId)))
     val first = info.firstOrNull()
     client.messages.send(ws, chatId, "✅ **getMembersInfo (v2)** — OK, members: ${info.size}, name: `${first?.profile?.fullName}`")
 }
@@ -588,12 +588,12 @@ suspend fun testGetMembersInfo(client: YuChatBotClient, ws: String, chatId: Stri
 // Files
 // ═══════════════════════════════════════════════════════════════
 
-suspend fun testGetUploadUrl(client: YuChatBotClient, ws: String, chatId: String) {
+suspend fun testGetUploadUrl(client: YuChatBotClient, ws: WorkspaceId, chatId: ChatId) {
     val resp = client.files.getUploadUrl(ws, "test.txt", MediaType.RAW)
     client.messages.send(ws, chatId, "✅ **getUploadUrl (v1)** — OK, fileId: `${resp.fileId}`")
 }
 
-suspend fun testGetDownloadUrl(client: YuChatBotClient, ws: String, chatId: String, arg: String?) {
+suspend fun testGetDownloadUrl(client: YuChatBotClient, ws: WorkspaceId, chatId: ChatId, arg: String?) {
     val fileId = arg ?: run {
         client.messages.send(ws, chatId, "⚠️ Укажите fileId: `/downloadurl <fileId>`")
         return
@@ -602,12 +602,12 @@ suspend fun testGetDownloadUrl(client: YuChatBotClient, ws: String, chatId: Stri
     client.messages.send(ws, chatId, "✅ **getDownloadUrl (v1)** — OK, url: `${resp.url.take(50)}...`")
 }
 
-suspend fun testGetUploadUrlV2(client: YuChatBotClient, ws: String, chatId: String) {
+suspend fun testGetUploadUrlV2(client: YuChatBotClient, ws: WorkspaceId, chatId: ChatId) {
     val resp = client.files.getUploadUrlV2(ws, "test_v2.txt")
     client.messages.send(ws, chatId, "✅ **getFileUploadUrl (v2)** — OK, fileId: `${resp.fileId}`")
 }
 
-suspend fun testGetDownloadUrlV2(client: YuChatBotClient, ws: String, chatId: String, arg: String?) {
+suspend fun testGetDownloadUrlV2(client: YuChatBotClient, ws: WorkspaceId, chatId: ChatId, arg: String?) {
     val fileId = arg ?: run {
         client.messages.send(ws, chatId, "⚠️ Укажите fileId: `/downloadurlv2 <fileId>`")
         return
@@ -620,17 +620,17 @@ suspend fun testGetDownloadUrlV2(client: YuChatBotClient, ws: String, chatId: St
 // Updates
 // ═══════════════════════════════════════════════════════════════
 
-suspend fun testGetUpdates(client: YuChatBotClient, ws: String, chatId: String) {
+suspend fun testGetUpdates(client: YuChatBotClient, ws: WorkspaceId, chatId: ChatId) {
     val updates = client.updates.getUpdates(limit = 1)
     client.messages.send(ws, chatId, "✅ **getUpdates (v1)** — OK, обновлений: ${updates.size}")
 }
 
-suspend fun testGetUpdatesV2(client: YuChatBotClient, ws: String, chatId: String) {
+suspend fun testGetUpdatesV2(client: YuChatBotClient, ws: WorkspaceId, chatId: ChatId) {
     val updates = client.updates.getUpdatesV2(limit = 1)
     client.messages.send(ws, chatId, "✅ **getUpdates (v2)** — OK, обновлений: ${updates.size}")
 }
 
-suspend fun testSetUpdateSettings(client: YuChatBotClient, ws: String, chatId: String) {
+suspend fun testSetUpdateSettings(client: YuChatBotClient, ws: WorkspaceId, chatId: ChatId) {
     client.updates.setUpdateSettings(
         updateSettings = listOf(
             UpdateSetting.MESSAGE
@@ -641,21 +641,21 @@ suspend fun testSetUpdateSettings(client: YuChatBotClient, ws: String, chatId: S
     client.messages.send(ws, chatId, "✅ **setUpdateSettings** — OK")
 }
 
-suspend fun testGetWorkspaceInvites(client: YuChatBotClient, ws: String, chatId: String) {
+suspend fun testGetWorkspaceInvites(client: YuChatBotClient, ws: WorkspaceId, chatId: ChatId) {
     val invites = client.updates.getWorkspaceInvites()
     client.messages.send(ws, chatId, "✅ **getMyWorkspaceInvites** — OK, приглашений: ${invites.size}")
 }
 
-suspend fun testAcceptInvite(client: YuChatBotClient, ws: String, chatId: String, arg: String?) {
+suspend fun testAcceptInvite(client: YuChatBotClient, ws: WorkspaceId, chatId: ChatId, arg: String?) {
     val workspaceId = arg ?: run {
         client.messages.send(ws, chatId, "⚠️ Укажите: `/acceptinvite <workspaceId>`")
         return
     }
-    client.updates.acceptWorkspaceInvite(workspaceId)
+    client.updates.acceptWorkspaceInvite(WorkspaceId(workspaceId))
     client.messages.send(ws, chatId, "✅ **acceptWorkspaceInvite** — OK")
 }
 
-suspend fun testRejectInvites(client: YuChatBotClient, ws: String, chatId: String) {
+suspend fun testRejectInvites(client: YuChatBotClient, ws: WorkspaceId, chatId: ChatId) {
     client.updates.rejectAllWorkspaceInvites()
     client.messages.send(ws, chatId, "✅ **rejectAllWorkspaceInvites** — OK")
 }
@@ -664,7 +664,7 @@ suspend fun testRejectInvites(client: YuChatBotClient, ws: String, chatId: Strin
 // Webhooks
 // ═══════════════════════════════════════════════════════════════
 
-suspend fun testSetWebhook(client: YuChatBotClient, ws: String, chatId: String, arg: String?) {
+suspend fun testSetWebhook(client: YuChatBotClient, ws: WorkspaceId, chatId: ChatId, arg: String?) {
     val url = arg ?: run {
         client.messages.send(ws, chatId, "⚠️ Укажите URL: `/setwebhook <url>`")
         return
@@ -673,17 +673,17 @@ suspend fun testSetWebhook(client: YuChatBotClient, ws: String, chatId: String, 
     client.messages.send(ws, chatId, "✅ **setWebhook (v1)** — OK")
 }
 
-suspend fun testDeleteWebhook(client: YuChatBotClient, ws: String, chatId: String) {
+suspend fun testDeleteWebhook(client: YuChatBotClient, ws: WorkspaceId, chatId: ChatId) {
     client.webhooks.deleteWebhook()
     client.messages.send(ws, chatId, "✅ **deleteWebhook (v1)** — OK")
 }
 
-suspend fun testGetWebhookInfo(client: YuChatBotClient, ws: String, chatId: String) {
+suspend fun testGetWebhookInfo(client: YuChatBotClient, ws: WorkspaceId, chatId: ChatId) {
     val info = client.webhooks.getWebhookInfo()
     client.messages.send(ws, chatId, "✅ **getWebhookInfo (v1)** — OK, url: `${info.url.ifBlank { "(не установлен)" }}`")
 }
 
-suspend fun testSetWebhookV2(client: YuChatBotClient, ws: String, chatId: String, arg: String?) {
+suspend fun testSetWebhookV2(client: YuChatBotClient, ws: WorkspaceId, chatId: ChatId, arg: String?) {
     val url = arg ?: run {
         client.messages.send(ws, chatId, "⚠️ Укажите URL: `/setwebhookv2 <url>`")
         return
@@ -692,12 +692,12 @@ suspend fun testSetWebhookV2(client: YuChatBotClient, ws: String, chatId: String
     client.messages.send(ws, chatId, "✅ **setWebhook (v2)** — OK")
 }
 
-suspend fun testDeleteWebhookV2(client: YuChatBotClient, ws: String, chatId: String) {
+suspend fun testDeleteWebhookV2(client: YuChatBotClient, ws: WorkspaceId, chatId: ChatId) {
     client.webhooks.deleteWebhookV2()
     client.messages.send(ws, chatId, "✅ **deleteWebhook (v2)** — OK")
 }
 
-suspend fun testGetWebhookInfoV2(client: YuChatBotClient, ws: String, chatId: String) {
+suspend fun testGetWebhookInfoV2(client: YuChatBotClient, ws: WorkspaceId, chatId: ChatId) {
     val info = client.webhooks.getWebhookInfoV2()
     client.messages.send(ws, chatId, "✅ **getWebhookInfo (v2)** — OK, url: `${info.url.ifBlank { "(не установлен)" }}`")
 }
@@ -706,7 +706,7 @@ suspend fun testGetWebhookInfoV2(client: YuChatBotClient, ws: String, chatId: St
 // Test All (safe endpoints only)
 // ═══════════════════════════════════════════════════════════════
 
-suspend fun testAllSafe(client: YuChatBotClient, ws: String, chatId: String, msgId: String) {
+suspend fun testAllSafe(client: YuChatBotClient, ws: WorkspaceId, chatId: ChatId, msgId: ChatMessageId) {
     client.messages.send(ws, chatId, "🚀 **Запуск тестов всех безопасных эндпоинтов (V1 + V2)...**")
     val results = mutableListOf<String>()
     runV1Tests(client, ws, chatId, msgId, results)
@@ -714,14 +714,14 @@ suspend fun testAllSafe(client: YuChatBotClient, ws: String, chatId: String, msg
     sendReport("V1 + V2", client, ws, chatId, results)
 }
 
-suspend fun testAllV1(client: YuChatBotClient, ws: String, chatId: String, msgId: String) {
+suspend fun testAllV1(client: YuChatBotClient, ws: WorkspaceId, chatId: ChatId, msgId: ChatMessageId) {
     client.messages.send(ws, chatId, "🚀 **Запуск тестов V1 API...**")
     val results = mutableListOf<String>()
     runV1Tests(client, ws, chatId, msgId, results)
     sendReport("V1", client, ws, chatId, results)
 }
 
-suspend fun testAllV2(client: YuChatBotClient, ws: String, chatId: String, msgId: String) {
+suspend fun testAllV2(client: YuChatBotClient, ws: WorkspaceId, chatId: ChatId, msgId: ChatMessageId) {
     client.messages.send(ws, chatId, "🚀 **Запуск тестов V2 API...**")
     val results = mutableListOf<String>()
     runV2Tests(client, ws, chatId, msgId, results)
@@ -743,7 +743,7 @@ private suspend fun runTest(name: String, results: MutableList<String>, block: s
 }
 
 private suspend fun runV1Tests(
-    client: YuChatBotClient, ws: String, chatId: String, msgId: String,
+    client: YuChatBotClient, ws: WorkspaceId, chatId: ChatId, msgId: ChatMessageId,
     results: MutableList<String>
 ) {
     println("── V1 Tests ──")
@@ -795,7 +795,7 @@ private suspend fun runV1Tests(
 }
 
 private suspend fun runV2Tests(
-    client: YuChatBotClient, ws: String, chatId: String, msgId: String,
+    client: YuChatBotClient, ws: WorkspaceId, chatId: ChatId, msgId: ChatMessageId,
     results: MutableList<String>
 ) {
     println("── V2 Tests ──")
@@ -886,7 +886,7 @@ private suspend fun runV2Tests(
 }
 
 private suspend fun sendReport(
-    label: String, client: YuChatBotClient, ws: String, chatId: String,
+    label: String, client: YuChatBotClient, ws: WorkspaceId, chatId: ChatId,
     results: List<String>
 ) {
     val passed = results.count { it.startsWith("✅") }

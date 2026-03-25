@@ -1,6 +1,7 @@
 package ru.rt.yuchatbotapi.api
 
 import kotlinx.coroutines.runBlocking
+import ru.rt.yuchatbotapi.model.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -25,7 +26,7 @@ class UpdatesApiMockTest {
         assertEquals(2, result.size)
         assertEquals(1L, result[0].updateId)
         assertEquals("hello", result[0].newChatMessage?.text)
-        assertEquals("c2", result[1].inviteToChat?.chatId)
+        assertEquals(ChatId("c2"), result[1].inviteToChat?.chatId)
     }
 
     @Test
@@ -92,7 +93,7 @@ class UpdatesApiMockTest {
 
         assertEquals("/public/v2/getMyWorkspaceInvites", capturedPath)
         assertEquals(1, result.size)
-        assertEquals("ws-new", result[0].workspaceId)
+        assertEquals(WorkspaceId("ws-new"), result[0].workspaceId)
     }
 
     @Test
@@ -104,7 +105,7 @@ class UpdatesApiMockTest {
         }
         val api = UpdatesApi(client)
 
-        api.acceptWorkspaceInvite("ws-new")
+        api.acceptWorkspaceInvite(WorkspaceId("ws-new"))
 
         assertEquals("/public/v2/acceptWorkspaceInvite", capturedPath)
     }

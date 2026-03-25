@@ -27,10 +27,10 @@ class MessageSerializationTest {
         """.trimIndent()
 
         val msg = json.decodeFromString<NewChatMessage>(raw)
-        assertEquals("w67Y89gu", msg.workspaceId)
-        assertEquals("c56Y0kgi", msg.chatId)
-        assertEquals("m56Y0kgi", msg.messageId)
-        assertEquals("a56Y0kgi", msg.author)
+        assertEquals(WorkspaceId("w67Y89gu"), msg.workspaceId)
+        assertEquals(ChatId("c56Y0kgi"), msg.chatId)
+        assertEquals(ChatMessageId("m56Y0kgi"), msg.messageId)
+        assertEquals(AccountId("a56Y0kgi"), msg.author)
         assertEquals("Привет!", msg.text)
         assertNull(msg.parentMessageId)
         assertNull(msg.fileIds)
@@ -53,18 +53,18 @@ class MessageSerializationTest {
         """.trimIndent()
 
         val msg = json.decodeFromString<NewChatMessage>(raw)
-        assertEquals("m0", msg.parentMessageId)
-        assertEquals("a0", msg.parentMessageAuthor)
+        assertEquals(ChatMessageId("m0"), msg.parentMessageId)
+        assertEquals(AccountId("a0"), msg.parentMessageAuthor)
         assertEquals(listOf("f1", "f2"), msg.fileIds)
     }
 
     @Test
     fun `serialize NewChatMessage omits nulls`() {
         val msg = NewChatMessage(
-            workspaceId = "w1",
-            chatId = "c1",
-            messageId = "m1",
-            author = "a1",
+            workspaceId = WorkspaceId("w1"),
+            chatId = ChatId("c1"),
+            messageId = ChatMessageId("m1"),
+            author = AccountId("a1"),
             text = "test",
             createdAt = "2024-01-01T00:00:00Z"
         )
@@ -96,7 +96,7 @@ class MessageSerializationTest {
         """.trimIndent()
 
         val msg = json.decodeFromString<Message>(raw)
-        assertEquals("AIQffAsGi8", msg.workspaceId)
+        assertEquals(WorkspaceId("AIQffAsGi8"), msg.workspaceId)
         assertEquals(MessageType.USER, msg.messageType)
         assertEquals("Hello from v2!", msg.content.text)
         assertEquals(1, msg.reactions?.size)
@@ -139,7 +139,7 @@ class MessageSerializationTest {
 
         val msg = json.decodeFromString<Message>(raw)
         val fwd = msg.content.forwardedContent!!
-        assertEquals("w0", fwd.sourceWorkspaceId)
+        assertEquals(WorkspaceId("w0"), fwd.sourceWorkspaceId)
         assertEquals(1, fwd.forwardedMessages.size)
         assertEquals("Original message", fwd.forwardedMessages[0].content.text)
     }
@@ -169,7 +169,7 @@ class MessageSerializationTest {
         val msg = json.decodeFromString<Message>(raw)
         assertEquals(MessageType.SYSTEM, msg.messageType)
         val event = msg.content.systemEvent!!.chatCreated!!
-        assertEquals("mb1", event.creatorMembershipId)
-        assertEquals(listOf("mb1", "mb2"), event.membershipIds)
+        assertEquals(MembershipId("mb1"), event.creatorMembershipId)
+        assertEquals(listOf(MembershipId("mb1"), MembershipId("mb2")), event.membershipIds)
     }
 }

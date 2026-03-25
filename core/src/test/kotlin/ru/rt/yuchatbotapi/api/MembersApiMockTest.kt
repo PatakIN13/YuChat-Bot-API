@@ -1,6 +1,7 @@
 package ru.rt.yuchatbotapi.api
 
 import kotlinx.coroutines.runBlocking
+import ru.rt.yuchatbotapi.model.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -19,11 +20,11 @@ class MembersApiMockTest {
         }
         val api = MembersApi(client)
 
-        val result = api.list("ws-1")
+        val result = api.list(WorkspaceId("ws-1"))
 
         assertEquals("/public/v1/member.list", capturedPath)
         assertEquals(2, result.size)
-        assertEquals("m1", result[0].memberId)
+        assertEquals(MembershipId("m1"), result[0].memberId)
     }
 
     @Test
@@ -31,7 +32,7 @@ class MembersApiMockTest {
         val client = createMockClient { _ -> jsonResponse("""{"members":null}""") }
         val api = MembersApi(client)
 
-        val result = api.list("ws-1")
+        val result = api.list(WorkspaceId("ws-1"))
 
         assertTrue(result.isEmpty())
     }
@@ -47,7 +48,7 @@ class MembersApiMockTest {
         }
         val api = MembersApi(client)
 
-        val result = api.getMembers("ws-1", pageSize = 10, pageToken = "page-0")
+        val result = api.getMembers(WorkspaceId("ws-1"), pageSize = 10, pageToken = "page-0")
 
         assertEquals("/public/v2/getMembers", capturedPath)
         assertEquals(2, result.membershipIds.size)
@@ -67,7 +68,7 @@ class MembersApiMockTest {
         }
         val api = MembersApi(client)
 
-        api.invite("ws-1", listOf("user@corp.ru"))
+        api.invite(WorkspaceId("ws-1"), listOf("user@corp.ru"))
 
         assertEquals("/public/v2/inviteMember", capturedPath)
         assertTrue(capturedBody.contains("\"emails\":[\"user@corp.ru\"]"))
@@ -84,7 +85,7 @@ class MembersApiMockTest {
         }
         val api = MembersApi(client)
 
-        api.remove("ws-1", "member-1")
+        api.remove(WorkspaceId("ws-1"), MembershipId("member-1"))
 
         assertEquals("/public/v2/removeMember", capturedPath)
         assertTrue(capturedBody.contains("\"membershipId\":\"member-1\""))
@@ -101,7 +102,7 @@ class MembersApiMockTest {
         }
         val api = MembersApi(client)
 
-        api.setRole("ws-1", "member-1", ru.rt.yuchatbotapi.model.WorkspaceRole.ADMIN)
+        api.setRole(WorkspaceId("ws-1"), MembershipId("member-1"), ru.rt.yuchatbotapi.model.WorkspaceRole.ADMIN)
 
         assertEquals("/public/v2/setWorkspaceMemberRole", capturedPath)
         assertTrue(capturedBody.contains("\"membershipId\":\"member-1\""))
@@ -125,11 +126,11 @@ class MembersApiMockTest {
         }
         val api = MembersApi(client)
 
-        val result = api.getInfo("ws-1", listOf("m1"))
+        val result = api.getInfo(WorkspaceId("ws-1"), listOf(MembershipId("m1")))
 
         assertEquals("/public/v2/getMembersInfo", capturedPath)
         assertEquals(1, result.size)
-        assertEquals("m1", result[0].membershipId)
+        assertEquals(MembershipId("m1"), result[0].membershipId)
         assertTrue(capturedBody.contains("\"workspaceId\":\"ws-1\""))
     }
 }

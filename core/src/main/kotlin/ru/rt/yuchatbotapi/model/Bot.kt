@@ -49,7 +49,7 @@ data class SetWebhookRequest(
 @Serializable
 data class MeInfo(
     val profile: Profile,
-    val workspaces: List<String>,
+    @get:JvmName("getWorkspaces") val workspaces: List<WorkspaceId>,
     val updateApiVersion: Int,
     val updateSettings: List<UpdateSetting>,
     val autoAcceptWorkspaceInvite: Boolean,
@@ -67,7 +67,7 @@ data class MeInfo(
 data class BotScope(
     val type: BotScopeType,
     val organizationId: String? = null,
-    val workspaceId: String? = null
+    @get:JvmName("getWorkspaceId") val workspaceId: WorkspaceId? = null
 )
 
 /** Ответ на запрос URL для загрузки файла (v2). */
@@ -102,7 +102,7 @@ data class GetMessagesResponse(
 @Serializable
 data class DeleteMessagesResponse(
     val updatedAt: String,
-    val deletedMessageIds: List<String>
+    @get:JvmName("getDeletedMessageIds") val deletedMessageIds: List<ChatMessageId>
 )
 
 /** Ответ на добавление/снятие реакции (v2). */
@@ -120,7 +120,7 @@ data class ToggleReactionResponse(
  */
 @Serializable
 data class GetMembersResponse(
-    val membershipIds: List<String>,
+    @get:JvmName("getMembershipIds") val membershipIds: List<MembershipId>,
     val prevPageToken: String? = null,
     val nextPageToken: String? = null
 )
@@ -134,7 +134,7 @@ data class GetMembersResponse(
  */
 @Serializable
 data class GetChatsResponse(
-    val chatIds: List<String>,
+    @get:JvmName("getChatIds") val chatIds: List<ChatId>,
     val prevPageToken: String? = null,
     val nextPageToken: String? = null
 )

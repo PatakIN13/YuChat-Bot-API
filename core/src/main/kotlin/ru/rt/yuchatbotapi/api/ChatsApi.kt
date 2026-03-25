@@ -18,80 +18,80 @@ class ChatsApi internal constructor(private val client: YuChatHttpClient) {
 
     /** Создание воркспейс-чата (v1) */
     suspend fun createWorkspace(
-        workspaceId: String,
+        workspaceId: WorkspaceId,
         name: String? = null,
         type: WorkspaceChatType? = null,
-        participants: List<String>? = null,
+        participants: List<MembershipId>? = null,
         announce: Boolean? = null,
         description: String? = null
     ): CreateChatResponse {
         return client.post("/public/v1/chat.workspace.create", CreateWorkspaceChatV1Request(
-            workspaceId = workspaceId,
+            workspaceId = workspaceId.value,
             name = name,
             type = type,
-            participants = participants,
+            participants = participants?.map { it.value },
             announceChannel = announce,
             description = description
         ))
     }
 
     /** Создание личного чата (v1) */
-    suspend fun createPersonal(workspaceId: String, participant: String): CreateChatResponse {
+    suspend fun createPersonal(workspaceId: WorkspaceId, participant: MembershipId): CreateChatResponse {
         return client.post("/public/v1/chat.personal.create", CreatePersonalChatV1Request(
-            workspaceId = workspaceId,
-            participant = participant
+            workspaceId = workspaceId.value,
+            participant = participant.value
         ))
     }
 
     /** Создание треда (v1) */
     suspend fun createThread(
-        workspaceId: String,
-        chatId: String,
+        workspaceId: WorkspaceId,
+        chatId: ChatId,
         parentMessageId: String
     ): CreateChatResponse {
         return client.post("/public/v1/chat.thread.create", CreateThreadChatV1Request(
-            workspaceId = workspaceId,
-            chatId = chatId,
+            workspaceId = workspaceId.value,
+            chatId = chatId.value,
             parentMessageId = parentMessageId
         ))
     }
 
     /** Список чатов воркспейса (v1) */
     suspend fun listWorkspace(
-        workspaceId: String,
-        chatIds: List<String>? = null,
+        workspaceId: WorkspaceId,
+        chatIds: List<ChatId>? = null,
         maxCount: Int? = null
     ): ListWorkspaceChatsResponse {
         return client.post("/public/v1/chat.workspace.list", ListWorkspaceChatsV1Request(
-            workspaceId = workspaceId,
-            chatIds = chatIds,
+            workspaceId = workspaceId.value,
+            chatIds = chatIds?.map { it.value },
             maxCount = maxCount
         ))
     }
 
     /** Приглашение участников в чат (v1) */
     suspend fun invite(
-        workspaceId: String,
-        chatId: String,
-        memberIds: List<String>
+        workspaceId: WorkspaceId,
+        chatId: ChatId,
+        memberIds: List<MembershipId>
     ): InviteToChatResponse {
         return client.post("/public/v1/chat.invite", InviteToChatV1Request(
-            workspaceId = workspaceId,
-            chatId = chatId,
-            memberId = memberIds
+            workspaceId = workspaceId.value,
+            chatId = chatId.value,
+            memberId = memberIds.map { it.value }
         ))
     }
 
     /** Исключение участников из чата (v1) */
     suspend fun kick(
-        workspaceId: String,
-        chatId: String,
-        memberIds: List<String>
+        workspaceId: WorkspaceId,
+        chatId: ChatId,
+        memberIds: List<MembershipId>
     ): KickFromChatResponse {
         return client.post("/public/v1/chat.kick", KickFromChatV1Request(
-            workspaceId = workspaceId,
-            chatId = chatId,
-            memberId = memberIds
+            workspaceId = workspaceId.value,
+            chatId = chatId.value,
+            memberId = memberIds.map { it.value }
         ))
     }
 
@@ -99,90 +99,90 @@ class ChatsApi internal constructor(private val client: YuChatHttpClient) {
 
     /** Получение списка чатов воркспейса (v2) */
     suspend fun getWorkspaceChats(
-        workspaceId: String,
+        workspaceId: WorkspaceId,
         pageSize: Int? = null,
         pageToken: String? = null
     ): GetChatsResponse {
         @Serializable
         data class Req(val workspaceId: String, val pageSize: Int? = null, val pageToken: String? = null)
-        return client.post("/public/v2/getWorkspaceChats", Req(workspaceId, pageSize, pageToken))
+        return client.post("/public/v2/getWorkspaceChats", Req(workspaceId.value, pageSize, pageToken))
     }
 
     /** Получение своих чатов в воркспейсе (v2) */
     suspend fun getMyChats(
-        workspaceId: String,
+        workspaceId: WorkspaceId,
         pageSize: Int? = null,
         pageToken: String? = null
     ): GetChatsResponse {
         @Serializable
         data class Req(val workspaceId: String, val pageSize: Int? = null, val pageToken: String? = null)
-        return client.post("/public/v2/getMyWorkspaceChats", Req(workspaceId, pageSize, pageToken))
+        return client.post("/public/v2/getMyWorkspaceChats", Req(workspaceId.value, pageSize, pageToken))
     }
 
     /** Информация о чатах (v2) */
-    suspend fun getInfo(workspaceId: String, chatIds: List<String>): List<ChatMembership> {
+    suspend fun getInfo(workspaceId: WorkspaceId, chatIds: List<ChatId>): List<ChatMembership> {
         @Serializable
         data class Req(val workspaceId: String, val chatIds: List<String>)
         @Serializable
         data class Resp(val chatMemberships: List<ChatMembership>)
-        return client.post<Resp>("/public/v2/getChatsInfo", Req(workspaceId, chatIds)).chatMemberships
+        return client.post<Resp>("/public/v2/getChatsInfo", Req(workspaceId.value, chatIds.map { it.value })).chatMemberships
     }
 
     /** Выход из чата (v2) */
-    suspend fun leave(workspaceId: String, chatId: String) {
+    suspend fun leave(workspaceId: WorkspaceId, chatId: ChatId) {
         @Serializable
         data class Req(val workspaceId: String, val chatId: String)
-        client.postNoContent("/public/v2/leaveChat", Req(workspaceId, chatId))
+        client.postNoContent("/public/v2/leaveChat", Req(workspaceId.value, chatId.value))
     }
 
     /** Архивация чата (v2) */
-    suspend fun archive(workspaceId: String, chatId: String) {
+    suspend fun archive(workspaceId: WorkspaceId, chatId: ChatId) {
         @Serializable
         data class Req(val workspaceId: String, val chatId: String)
-        client.postNoContent("/public/v2/archiveChat", Req(workspaceId, chatId))
+        client.postNoContent("/public/v2/archiveChat", Req(workspaceId.value, chatId.value))
     }
 
     /** Разархивация чата (v2) */
-    suspend fun unarchive(workspaceId: String, chatId: String) {
+    suspend fun unarchive(workspaceId: WorkspaceId, chatId: ChatId) {
         @Serializable
         data class Req(val workspaceId: String, val chatId: String)
-        client.postNoContent("/public/v2/unrchiveChat", Req(workspaceId, chatId))
+        client.postNoContent("/public/v2/unrchiveChat", Req(workspaceId.value, chatId.value))
     }
 
     /** Изменение роли участника в чате (v2) */
-    suspend fun setMemberRole(workspaceId: String, chatId: String, membershipId: String, role: ChatRole) {
+    suspend fun setMemberRole(workspaceId: WorkspaceId, chatId: ChatId, membershipId: MembershipId, role: ChatRole) {
         @Serializable
         data class Req(val workspaceId: String, val chatId: String, val membershipId: String, val role: ChatRole)
-        client.postNoContent("/public/v2/setChatMemberRole", Req(workspaceId, chatId, membershipId, role))
+        client.postNoContent("/public/v2/setChatMemberRole", Req(workspaceId.value, chatId.value, membershipId.value, role))
     }
 
     /** Приглашение в чат (v2) */
-    suspend fun inviteV2(workspaceId: String, chatId: String, membershipIds: List<String>) {
+    suspend fun inviteV2(workspaceId: WorkspaceId, chatId: ChatId, membershipIds: List<MembershipId>) {
         @Serializable
         data class Req(val workspaceId: String, val chatId: String, val membershipIds: List<String>)
-        client.postNoContent("/public/v2/inviteToChat", Req(workspaceId, chatId, membershipIds))
+        client.postNoContent("/public/v2/inviteToChat", Req(workspaceId.value, chatId.value, membershipIds.map { it.value }))
     }
 
     /** Исключение из чата (v2) */
-    suspend fun kickV2(workspaceId: String, chatId: String, membershipIds: List<String>) {
+    suspend fun kickV2(workspaceId: WorkspaceId, chatId: ChatId, membershipIds: List<MembershipId>) {
         @Serializable
         data class Req(val workspaceId: String, val chatId: String, val membershipIds: List<String>)
-        client.postNoContent("/public/v2/kickFromChat", Req(workspaceId, chatId, membershipIds))
+        client.postNoContent("/public/v2/kickFromChat", Req(workspaceId.value, chatId.value, membershipIds.map { it.value }))
     }
 
     /** Создание чата событий (v2) */
-    suspend fun createUserEventsChat(workspaceId: String, eventsType: EventsType? = null): CreateChatResponse {
+    suspend fun createUserEventsChat(workspaceId: WorkspaceId, eventsType: EventsType? = null): CreateChatResponse {
         @Serializable
         data class Req(val workspaceId: String, val eventsType: EventsType? = null)
-        return client.post("/public/v2/getOrCreateUserEventsChat", Req(workspaceId, eventsType))
+        return client.post("/public/v2/getOrCreateUserEventsChat", Req(workspaceId.value, eventsType))
     }
 
     /** Создание воркспейс-чата (v2) */
     suspend fun createWorkspaceChatV2(
-        workspaceId: String,
+        workspaceId: WorkspaceId,
         name: String,
         workspaceChatType: WorkspaceChatType,
-        participants: List<String>? = null,
+        participants: List<MembershipId>? = null,
         announce: Boolean? = null,
         autoJoinNewMembers: Boolean? = null,
         description: String? = null
@@ -198,26 +198,26 @@ class ChatsApi internal constructor(private val client: YuChatHttpClient) {
             val description: String? = null
         )
         return client.post("/public/v2/createWorkspaceChat", Req(
-            workspaceId, name, workspaceChatType, participants, announce, autoJoinNewMembers, description
+            workspaceId.value, name, workspaceChatType, participants?.map { it.value }, announce, autoJoinNewMembers, description
         ))
     }
 
     /** Создание или получение личного чата (v2) */
-    suspend fun getOrCreatePersonalChat(workspaceId: String, participant: String): CreateChatResponse {
+    suspend fun getOrCreatePersonalChat(workspaceId: WorkspaceId, participant: MembershipId): CreateChatResponse {
         @Serializable
         data class Req(val workspaceId: String, val participant: String)
-        return client.post("/public/v2/getOrCreatePersonalChat", Req(workspaceId, participant))
+        return client.post("/public/v2/getOrCreatePersonalChat", Req(workspaceId.value, participant.value))
     }
 
     /** Создание или получение треда (v2) */
     suspend fun getOrCreateThreadChat(
-        workspaceId: String,
-        parentChatId: String,
+        workspaceId: WorkspaceId,
+        parentChatId: ChatId,
         parentMessageId: String
     ): CreateChatResponse {
         @Serializable
         data class Req(val workspaceId: String, val parentChatId: String, val parentMessageId: String)
-        return client.post("/public/v2/getOrCreateThreadChat", Req(workspaceId, parentChatId, parentMessageId))
+        return client.post("/public/v2/getOrCreateThreadChat", Req(workspaceId.value, parentChatId.value, parentMessageId))
     }
 }
 
@@ -248,7 +248,7 @@ internal data class CreateThreadChatV1Request(
 
 /** Ответ на создание чата. */
 @Serializable
-data class CreateChatResponse(val chatId: String? = null)
+data class CreateChatResponse(@get:JvmName("getChatId") val chatId: ChatId? = null)
 
 @Serializable
 internal data class ListWorkspaceChatsV1Request(

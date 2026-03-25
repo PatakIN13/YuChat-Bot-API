@@ -11,13 +11,13 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class WorkspaceChat(
-    val chatId: String? = null,
-    val workspaceId: String? = null,
+    @get:JvmName("getChatId") val chatId: ChatId? = null,
+    @get:JvmName("getWorkspaceId") val workspaceId: WorkspaceId? = null,
     val name: String? = null,
     val type: WorkspaceChatType? = null,
     val announceChannel: Boolean? = null,
     val description: String? = null,
-    val membershipIds: List<String>? = null
+    @get:JvmName("getMembershipIds") val membershipIds: List<MembershipId>? = null
 )
 
 /**
@@ -43,8 +43,8 @@ data class WorkspaceChatMembership(
  */
 @Serializable
 data class ChatMembership(
-    val chatId: String,
-    val workspaceId: String,
+    @get:JvmName("getChatId") val chatId: ChatId,
+    @get:JvmName("getWorkspaceId") val workspaceId: WorkspaceId,
     val metadata: ChatMetadata,
     val createdAt: String,
     val updatedAt: String,
@@ -71,7 +71,7 @@ data class ChatMetadata(
 /** Метаданные личного чата (v2). */
 @Serializable
 data class PersonalChatMetadata(
-    val otherMembershipId: String
+    @get:JvmName("getOtherMembershipId") val otherMembershipId: MembershipId
 )
 
 /**
@@ -93,8 +93,8 @@ data class WorkspaceChatMetadata(
 /** Метаданные тред-чата (v2). */
 @Serializable
 data class ThreadChatMetadata(
-    val parentChatId: String,
-    val parentMessageId: String
+    @get:JvmName("getParentChatId") val parentChatId: ChatId,
+    @get:JvmName("getParentMessageId") val parentMessageId: ChatMessageId
 )
 
 /** Метаданные чата конференции (v2). */
@@ -106,5 +106,5 @@ data class ConferenceChatMetadata(
 /** Метаданные чата пользовательских событий (v2). */
 @Serializable
 data class UserEventsChatMetadata(
-    val owner: String
+    @get:JvmName("getOwner") val owner: MembershipId
 )

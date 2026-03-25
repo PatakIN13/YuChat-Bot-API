@@ -1,6 +1,7 @@
 package ru.rt.yuchatbotapi.api
 
 import kotlinx.coroutines.runBlocking
+import ru.rt.yuchatbotapi.model.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -31,7 +32,7 @@ class BotApiMockTest {
         val result = api.getMe()
 
         assertEquals("/public/v2/getMe", capturedPath)
-        assertEquals("bot-acc-1", result.profile.accountId)
+        assertEquals(AccountId("bot-acc-1"), result.profile.accountId)
         assertEquals("TestBot", result.profile.fullName)
         assertEquals(2, result.workspaces.size)
         assertEquals(2, result.updateApiVersion)

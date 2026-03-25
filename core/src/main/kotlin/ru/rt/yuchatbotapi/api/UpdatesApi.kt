@@ -89,10 +89,10 @@ class UpdatesApi internal constructor(private val client: YuChatHttpClient) {
     }
 
     /** Принятие приглашения в воркспейс (v2) */
-    suspend fun acceptWorkspaceInvite(workspaceId: String) {
+    suspend fun acceptWorkspaceInvite(workspaceId: WorkspaceId) {
         @Serializable
         data class Req(val workspaceId: String)
-        client.postNoContent("/public/v2/acceptWorkspaceInvite", Req(workspaceId))
+        client.postNoContent("/public/v2/acceptWorkspaceInvite", Req(workspaceId.value))
     }
 
     /** Отклонение всех приглашений (v2) */
