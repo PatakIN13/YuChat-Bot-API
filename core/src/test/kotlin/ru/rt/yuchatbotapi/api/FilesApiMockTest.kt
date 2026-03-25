@@ -1,6 +1,7 @@
 package ru.rt.yuchatbotapi.api
 
 import kotlinx.coroutines.runBlocking
+import ru.rt.yuchatbotapi.model.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -18,7 +19,7 @@ class FilesApiMockTest {
         }
         val api = FilesApi(client)
 
-        val result = api.getUploadUrl("ws-1", "report.pdf", ru.rt.yuchatbotapi.model.MediaType.PDF)
+        val result = api.getUploadUrl(WorkspaceId("ws-1"), "report.pdf", ru.rt.yuchatbotapi.model.MediaType.PDF)
 
         assertEquals("/public/v1/file.getPreSignedUrl", capturedPath)
         assertEquals("file-1", result.fileId)
@@ -52,7 +53,7 @@ class FilesApiMockTest {
         }
         val api = FilesApi(client)
 
-        val result = api.getUploadUrlV2("ws-1", "photo.jpg")
+        val result = api.getUploadUrlV2(WorkspaceId("ws-1"), "photo.jpg")
 
         assertEquals("/public/v2/getFileUploadUrl", capturedPath)
         assertEquals("file-v2", result.fileId)

@@ -22,13 +22,13 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class NewChatMessage(
-    val workspaceId: WorkspaceId,
-    val chatId: ChatId,
-    val messageId: ChatMessageId,
-    val author: AccountId,
+    @get:JvmName("getWorkspaceId") val workspaceId: WorkspaceId,
+    @get:JvmName("getChatId") val chatId: ChatId,
+    @get:JvmName("getMessageId") val messageId: ChatMessageId,
+    @get:JvmName("getAuthor") val author: AccountId,
     @SerialName("markdown") val text: String,
-    val parentMessageId: ChatMessageId? = null,
-    val parentMessageAuthor: AccountId? = null,
+    @get:JvmName("getParentMessageId") val parentMessageId: ChatMessageId? = null,
+    @get:JvmName("getParentMessageAuthor") val parentMessageAuthor: AccountId? = null,
     val fileIds: List<String>? = null,
     val createdAt: String
 )
@@ -40,27 +40,27 @@ data class NewChatMessage(
  */
 @Serializable
 data class InviteToChat(
-    val workspaceId: WorkspaceId,
-    val chatId: ChatId,
-    val inviter: AccountId
+    @get:JvmName("getWorkspaceId") val workspaceId: WorkspaceId,
+    @get:JvmName("getChatId") val chatId: ChatId,
+    @get:JvmName("getInviter") val inviter: AccountId
 )
 
 /** Событие присоединения участников к чату (v1). */
 @Serializable
 data class JoinedToChat(
-    val workspaceId: WorkspaceId,
-    val chatId: ChatId,
-    val inviter: MembershipId? = null,
-    val joined: List<MembershipId>
+    @get:JvmName("getWorkspaceId") val workspaceId: WorkspaceId,
+    @get:JvmName("getChatId") val chatId: ChatId,
+    @get:JvmName("getInviter") val inviter: MembershipId? = null,
+    @get:JvmName("getJoined") val joined: List<MembershipId>
 )
 
 /** Событие выхода участников из чата (v1). */
 @Serializable
 data class LeftFromChat(
-    val workspaceId: WorkspaceId,
-    val chatId: ChatId,
-    val kicker: MembershipId? = null,
-    val left: List<MembershipId>
+    @get:JvmName("getWorkspaceId") val workspaceId: WorkspaceId,
+    @get:JvmName("getChatId") val chatId: ChatId,
+    @get:JvmName("getKicker") val kicker: MembershipId? = null,
+    @get:JvmName("getLeft") val left: List<MembershipId>
 )
 
 // ── v2 модели сообщений ──
@@ -79,15 +79,15 @@ data class LeftFromChat(
  */
 @Serializable
 data class Message(
-    val workspaceId: String,
-    val chatId: String,
-    val messageId: String,
+    @get:JvmName("getWorkspaceId") val workspaceId: WorkspaceId,
+    @get:JvmName("getChatId") val chatId: ChatId,
+    @get:JvmName("getMessageId") val messageId: ChatMessageId,
     val messageType: MessageType,
-    val membershipId: String,
+    @get:JvmName("getMembershipId") val membershipId: MembershipId,
     val createdAt: String,
     val updatedAt: String,
     val content: MessageContent,
-    val inReplyToMessageId: String? = null,
+    @get:JvmName("getInReplyToMessageId") val inReplyToMessageId: ChatMessageId? = null,
     val reactions: List<Reaction>? = null,
     val threadId: String? = null,
     val pinnedAt: String? = null
@@ -118,8 +118,8 @@ data class Reaction(
 /** Пересланный контент (v2). */
 @Serializable
 data class ForwardedContent(
-    val sourceWorkspaceId: String,
-    val sourceChatId: String,
+    @get:JvmName("getSourceWorkspaceId") val sourceWorkspaceId: WorkspaceId,
+    @get:JvmName("getSourceChatId") val sourceChatId: ChatId,
     val forwardedMessages: List<Message>
 )
 
@@ -136,34 +136,34 @@ data class SystemEvent(
 /** Событие создания чата (v2). */
 @Serializable
 data class ChatCreatedEvent(
-    val creatorMembershipId: String,
-    val membershipIds: List<String>? = null
+    @get:JvmName("getCreatorMembershipId") val creatorMembershipId: MembershipId,
+    @get:JvmName("getMembershipIds") val membershipIds: List<MembershipId>? = null
 )
 
 /** Событие конвертации чата в приватный (v2). */
 @Serializable
 data class ChatConvertedEvent(
-    val initiatorMembershipId: String
+    @get:JvmName("getInitiatorMembershipId") val initiatorMembershipId: MembershipId
 )
 
 /** Событие присоединения участников (v2). */
 @Serializable
 data class MembersJoinedEvent(
-    val inviterMembershipId: String? = null,
-    val membershipIds: List<String>
+    @get:JvmName("getInviterMembershipId") val inviterMembershipId: MembershipId? = null,
+    @get:JvmName("getMembershipIds") val membershipIds: List<MembershipId>
 )
 
 /** Событие выхода участников (v2). */
 @Serializable
 data class MembersLeftEvent(
-    val kickerMembershipId: String? = null,
-    val membershipIds: List<String>
+    @get:JvmName("getKickerMembershipId") val kickerMembershipId: MembershipId? = null,
+    @get:JvmName("getMembershipIds") val membershipIds: List<MembershipId>
 )
 
 /** Событие переименования чата (v2). */
 @Serializable
 data class ChatRenamedEvent(
-    val initiatorMembershipId: String,
+    @get:JvmName("getInitiatorMembershipId") val initiatorMembershipId: MembershipId,
     val newName: String
 )
 
@@ -195,18 +195,18 @@ data class ConferenceTarget(
 
 /** Звонок в канал (v2). */
 @Serializable
-data class ChannelCall(val chatId: String)
+data class ChannelCall(@get:JvmName("getChatId") val chatId: ChatId)
 
 /** Watercooler-конференция (v2). */
 @Serializable
 data class Watercooler(
     val scope: String,
-    val membershipIds: List<String>
+    @get:JvmName("getMembershipIds") val membershipIds: List<MembershipId>
 )
 
 /** Упоминание в сообщении чата (v2). */
 @Serializable
 data class ChatMessageMention(
-    val chatId: String,
+    @get:JvmName("getChatId") val chatId: ChatId,
     val chatMessage: Message
 )

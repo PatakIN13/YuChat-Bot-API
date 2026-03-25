@@ -4,6 +4,7 @@ import io.ktor.client.engine.mock.*
 import io.ktor.http.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.runBlocking
+import ru.rt.yuchatbotapi.model.*
 import ru.rt.yuchatbotapi.exception.AuthenticationException
 import ru.rt.yuchatbotapi.exception.RateLimitException
 import ru.rt.yuchatbotapi.exception.YuChatApiException
@@ -22,7 +23,7 @@ class HttpClientErrorTest {
         val api = MessagesApi(client)
 
         assertFailsWith<AuthenticationException> {
-            api.send("ws-1", "chat-1", "test")
+            api.send(WorkspaceId("ws-1"), ChatId("chat-1"), "test")
         }
     }
 
@@ -34,7 +35,7 @@ class HttpClientErrorTest {
         val api = MessagesApi(client)
 
         val ex = assertFailsWith<YuChatApiException> {
-            api.send("ws-1", "chat-1", "test")
+            api.send(WorkspaceId("ws-1"), ChatId("chat-1"), "test")
         }
         assertEquals(403, ex.statusCode)
     }
@@ -49,7 +50,7 @@ class HttpClientErrorTest {
         val api = MessagesApi(client)
 
         assertFailsWith<RateLimitException> {
-            api.send("ws-1", "chat-1", "test")
+            api.send(WorkspaceId("ws-1"), ChatId("chat-1"), "test")
         }
         assertEquals(1, callCount)
     }
@@ -66,7 +67,7 @@ class HttpClientErrorTest {
         val api = MessagesApi(client)
 
         val ex = assertFailsWith<YuChatApiException> {
-            api.send("ws-1", "chat-1", "test")
+            api.send(WorkspaceId("ws-1"), ChatId("chat-1"), "test")
         }
         assertEquals(500, ex.statusCode)
         assertTrue(ex.message!!.contains("Internal Server Error"))
@@ -81,7 +82,7 @@ class HttpClientErrorTest {
         }
         val api = MessagesApi(client)
 
-        api.send("ws-1", "chat-1", "test")
+        api.send(WorkspaceId("ws-1"), ChatId("chat-1"), "test")
 
         assertEquals("Bearer test-token", capturedAuth)
     }
@@ -95,7 +96,7 @@ class HttpClientErrorTest {
         }
         val api = MessagesApi(client)
 
-        api.send("ws-1", "chat-1", "test")
+        api.send(WorkspaceId("ws-1"), ChatId("chat-1"), "test")
 
         assertTrue(capturedContentType.contains("application/json"))
     }
@@ -108,7 +109,7 @@ class HttpClientErrorTest {
         val api = ChatsApi(client)
 
         assertFailsWith<AuthenticationException> {
-            api.leave("ws-1", "chat-1")
+            api.leave(WorkspaceId("ws-1"), ChatId("chat-1"))
         }
     }
 
@@ -120,7 +121,7 @@ class HttpClientErrorTest {
         val api = ChatsApi(client)
 
         assertFailsWith<RateLimitException> {
-            api.archive("ws-1", "chat-1")
+            api.archive(WorkspaceId("ws-1"), ChatId("chat-1"))
         }
     }
 }

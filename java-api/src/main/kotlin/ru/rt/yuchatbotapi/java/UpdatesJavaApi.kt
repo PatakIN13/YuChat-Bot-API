@@ -39,7 +39,7 @@ class UpdatesJavaApi internal constructor(private val api: UpdatesApi) {
     }
 
     fun acceptWorkspaceInvite(workspaceId: String): CompletableFuture<Void> = asyncVoid {
-        api.acceptWorkspaceInvite(workspaceId)
+        api.acceptWorkspaceInvite(WorkspaceId(workspaceId))
     }
 
     fun rejectAllWorkspaceInvites(): CompletableFuture<Void> = asyncVoid {

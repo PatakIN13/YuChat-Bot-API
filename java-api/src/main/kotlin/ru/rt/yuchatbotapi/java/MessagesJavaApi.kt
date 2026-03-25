@@ -19,7 +19,7 @@ class MessagesJavaApi internal constructor(private val api: MessagesApi) {
         fileIds: List<String>? = null,
         replyTo: String? = null
     ): CompletableFuture<SendMessageResponse> = async {
-        api.send(workspaceId, chatId, text, fileIds, replyTo)
+        api.send(WorkspaceId(workspaceId), ChatId(chatId), text, fileIds, replyTo?.let { ChatMessageId(it) })
     }
 
     fun edit(
@@ -28,7 +28,7 @@ class MessagesJavaApi internal constructor(private val api: MessagesApi) {
         messageId: String,
         text: String
     ): CompletableFuture<EditMessageResponse> = async {
-        api.edit(workspaceId, chatId, messageId, text)
+        api.edit(WorkspaceId(workspaceId), ChatId(chatId), ChatMessageId(messageId), text)
     }
 
     fun delete(
@@ -36,7 +36,7 @@ class MessagesJavaApi internal constructor(private val api: MessagesApi) {
         chatId: String,
         messageId: String
     ): CompletableFuture<DeleteMessageResponse> = async {
-        api.delete(workspaceId, chatId, messageId)
+        api.delete(WorkspaceId(workspaceId), ChatId(chatId), ChatMessageId(messageId))
     }
 
     fun forward(
@@ -46,7 +46,7 @@ class MessagesJavaApi internal constructor(private val api: MessagesApi) {
         targetChatId: String,
         text: String
     ): CompletableFuture<ForwardMessageResponse> = async {
-        api.forward(workspaceId, sourceChatId, sourceMessageId, targetChatId, text)
+        api.forward(WorkspaceId(workspaceId), ChatId(sourceChatId), ChatMessageId(sourceMessageId), ChatId(targetChatId), text)
     }
 
     // ── v2 ──
@@ -60,7 +60,7 @@ class MessagesJavaApi internal constructor(private val api: MessagesApi) {
         replyTo: String? = null,
         buttonBar: ButtonBar? = null
     ): CompletableFuture<SendMessageResponse> = async {
-        api.sendV2(workspaceId, chatId, text, fileIds, replyTo, buttonBar)
+        api.sendV2(WorkspaceId(workspaceId), ChatId(chatId), text, fileIds, replyTo?.let { ChatMessageId(it) }, buttonBar)
     }
 
     @JvmOverloads
@@ -71,27 +71,27 @@ class MessagesJavaApi internal constructor(private val api: MessagesApi) {
         anchorMessageId: String? = null,
         getBefore: Boolean? = null
     ): CompletableFuture<GetMessagesResponse> = async {
-        api.getMessages(workspaceId, chatId, pageSize, anchorMessageId, getBefore)
+        api.getMessages(WorkspaceId(workspaceId), ChatId(chatId), pageSize, anchorMessageId, getBefore)
     }
 
     fun getById(workspaceId: String, chatId: String, messageId: String): CompletableFuture<Message> = async {
-        api.getById(workspaceId, chatId, messageId)
+        api.getById(WorkspaceId(workspaceId), ChatId(chatId), ChatMessageId(messageId))
     }
 
     fun pin(workspaceId: String, chatId: String, messageId: String): CompletableFuture<Void> = asyncVoid {
-        api.pin(workspaceId, chatId, messageId)
+        api.pin(WorkspaceId(workspaceId), ChatId(chatId), ChatMessageId(messageId))
     }
 
     fun unpin(workspaceId: String, chatId: String, messageId: String): CompletableFuture<Void> = asyncVoid {
-        api.unpin(workspaceId, chatId, messageId)
+        api.unpin(WorkspaceId(workspaceId), ChatId(chatId), ChatMessageId(messageId))
     }
 
     fun toggleReaction(workspaceId: String, chatId: String, messageId: String, emoji: String): CompletableFuture<ToggleReactionResponse> = async {
-        api.toggleReaction(workspaceId, chatId, messageId, emoji)
+        api.toggleReaction(WorkspaceId(workspaceId), ChatId(chatId), ChatMessageId(messageId), emoji)
     }
 
     fun deleteV2(workspaceId: String, chatId: String, messageIds: List<String>): CompletableFuture<DeleteMessagesResponse> = async {
-        api.deleteV2(workspaceId, chatId, messageIds)
+        api.deleteV2(WorkspaceId(workspaceId), ChatId(chatId), messageIds.map { ChatMessageId(it) })
     }
 
     @JvmOverloads
@@ -103,7 +103,7 @@ class MessagesJavaApi internal constructor(private val api: MessagesApi) {
         fileIds: List<String>? = null,
         buttonBar: ButtonBar? = null
     ): CompletableFuture<Void> = asyncVoid {
-        api.editV2(workspaceId, chatId, messageId, text, fileIds, buttonBar)
+        api.editV2(WorkspaceId(workspaceId), ChatId(chatId), ChatMessageId(messageId), text, fileIds, buttonBar)
     }
 
     @JvmOverloads
@@ -114,6 +114,6 @@ class MessagesJavaApi internal constructor(private val api: MessagesApi) {
         sourceMessageIds: List<String>,
         text: String? = null
     ): CompletableFuture<SendMessageResponse> = async {
-        api.forwardV2(workspaceId, sourceChatId, targetChatId, sourceMessageIds, text)
+        api.forwardV2(WorkspaceId(workspaceId), ChatId(sourceChatId), ChatId(targetChatId), sourceMessageIds.map { ChatMessageId(it) }, text)
     }
 }

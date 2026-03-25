@@ -1,6 +1,7 @@
 package ru.rt.yuchatbotapi.api
 
 import kotlinx.coroutines.runBlocking
+import ru.rt.yuchatbotapi.model.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -18,10 +19,10 @@ class ChatsApiMockTest {
         }
         val api = ChatsApi(client)
 
-        val result = api.createWorkspace("ws-1", name = "Test Chat", description = "Desc")
+        val result = api.createWorkspace(WorkspaceId("ws-1"), name = "Test Chat", description = "Desc")
 
         assertEquals("/public/v1/chat.workspace.create", capturedPath)
-        assertEquals("new-chat-1", result.chatId)
+        assertEquals(ChatId("new-chat-1"), result.chatId)
         assertTrue(capturedBody.contains("\"name\":\"Test Chat\""))
     }
 
@@ -34,10 +35,10 @@ class ChatsApiMockTest {
         }
         val api = ChatsApi(client)
 
-        val result = api.createPersonal("ws-1", "user-1")
+        val result = api.createPersonal(WorkspaceId("ws-1"), MembershipId("user-1"))
 
         assertEquals("/public/v1/chat.personal.create", capturedPath)
-        assertEquals("personal-1", result.chatId)
+        assertEquals(ChatId("personal-1"), result.chatId)
     }
 
     @Test
@@ -49,7 +50,7 @@ class ChatsApiMockTest {
         }
         val api = ChatsApi(client)
 
-        api.createThread("ws-1", "chat-1", "msg-1")
+        api.createThread(WorkspaceId("ws-1"), ChatId("chat-1"), "msg-1")
 
         assertEquals("/public/v1/chat.thread.create", capturedPath)
     }
@@ -63,7 +64,7 @@ class ChatsApiMockTest {
         }
         val api = ChatsApi(client)
 
-        val result = api.listWorkspace("ws-1")
+        val result = api.listWorkspace(WorkspaceId("ws-1"))
 
         assertEquals("/public/v1/chat.workspace.list", capturedPath)
         assertEquals(2, result.workspaceChats?.size)
@@ -78,7 +79,7 @@ class ChatsApiMockTest {
         }
         val api = ChatsApi(client)
 
-        api.invite("ws-1", "chat-1", listOf("user-1"))
+        api.invite(WorkspaceId("ws-1"), ChatId("chat-1"), listOf(MembershipId("user-1")))
 
         assertEquals("/public/v1/chat.invite", capturedPath)
     }
@@ -92,7 +93,7 @@ class ChatsApiMockTest {
         }
         val api = ChatsApi(client)
 
-        api.kick("ws-1", "chat-1", listOf("user-1"))
+        api.kick(WorkspaceId("ws-1"), ChatId("chat-1"), listOf(MembershipId("user-1")))
 
         assertEquals("/public/v1/chat.kick", capturedPath)
     }
@@ -108,7 +109,7 @@ class ChatsApiMockTest {
         }
         val api = ChatsApi(client)
 
-        val result = api.getWorkspaceChats("ws-1", pageSize = 10)
+        val result = api.getWorkspaceChats(WorkspaceId("ws-1"), pageSize = 10)
 
         assertEquals("/public/v2/getWorkspaceChats", capturedPath)
         assertEquals(3, result.chatIds.size)
@@ -124,7 +125,7 @@ class ChatsApiMockTest {
         }
         val api = ChatsApi(client)
 
-        val result = api.getMyChats("ws-1")
+        val result = api.getMyChats(WorkspaceId("ws-1"))
 
         assertEquals("/public/v2/getMyWorkspaceChats", capturedPath)
         assertTrue(result.chatIds.isEmpty())
@@ -141,7 +142,7 @@ class ChatsApiMockTest {
         }
         val api = ChatsApi(client)
 
-        api.getInfo("ws-1", listOf("chat-1"))
+        api.getInfo(WorkspaceId("ws-1"), listOf(ChatId("chat-1")))
 
         assertEquals("/public/v2/getChatsInfo", capturedPath)
         assertTrue(capturedBody.contains("\"workspaceId\":\"ws-1\""))
@@ -158,8 +159,7 @@ class ChatsApiMockTest {
         }
         val api = ChatsApi(client)
 
-        api.leave("ws-1", "chat-1")
-
+        api.leave(WorkspaceId("ws-1"), ChatId("chat-1"))
         assertEquals("/public/v2/leaveChat", capturedPath)
         assertTrue(capturedBody.contains("\"workspaceId\":\"ws-1\""))
     }
@@ -175,8 +175,7 @@ class ChatsApiMockTest {
         }
         val api = ChatsApi(client)
 
-        api.archive("ws-1", "chat-1")
-
+        api.archive(WorkspaceId("ws-1"), ChatId("chat-1"))
         assertEquals("/public/v2/archiveChat", capturedPath)
         assertTrue(capturedBody.contains("\"workspaceId\":\"ws-1\""))
     }
@@ -190,7 +189,7 @@ class ChatsApiMockTest {
         }
         val api = ChatsApi(client)
 
-        api.unarchive("ws-1", "chat-1")
+        api.unarchive(WorkspaceId("ws-1"), ChatId("chat-1"))
 
         assertEquals("/public/v2/unrchiveChat", capturedPath)
     }
@@ -206,7 +205,7 @@ class ChatsApiMockTest {
         }
         val api = ChatsApi(client)
 
-        api.setMemberRole("ws-1", "chat-1", "member-1", ru.rt.yuchatbotapi.model.ChatRole.ADMIN)
+        api.setMemberRole(WorkspaceId("ws-1"), ChatId("chat-1"), MembershipId("member-1"), ru.rt.yuchatbotapi.model.ChatRole.ADMIN)
 
         assertEquals("/public/v2/setChatMemberRole", capturedPath)
         assertTrue(capturedBody.contains("\"membershipId\":\"member-1\""))
@@ -223,7 +222,7 @@ class ChatsApiMockTest {
         }
         val api = ChatsApi(client)
 
-        api.inviteV2("ws-1", "chat-1", listOf("m1", "m2"))
+        api.inviteV2(WorkspaceId("ws-1"), ChatId("chat-1"), listOf(MembershipId("m1"), MembershipId("m2")))
 
         assertEquals("/public/v2/inviteToChat", capturedPath)
         assertTrue(capturedBody.contains("\"membershipIds\""))
@@ -238,9 +237,9 @@ class ChatsApiMockTest {
         }
         val api = ChatsApi(client)
 
-        val result = api.createUserEventsChat("ws-1")
+        val result = api.createUserEventsChat(WorkspaceId("ws-1"))
 
         assertEquals("/public/v2/getOrCreateUserEventsChat", capturedPath)
-        assertEquals("events-1", result.chatId)
+        assertEquals(ChatId("events-1"), result.chatId)
     }
 }

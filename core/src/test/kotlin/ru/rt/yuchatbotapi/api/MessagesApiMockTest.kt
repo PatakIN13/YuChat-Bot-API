@@ -2,6 +2,7 @@ package ru.rt.yuchatbotapi.api
 
 import io.ktor.http.*
 import kotlinx.coroutines.runBlocking
+import ru.rt.yuchatbotapi.model.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -19,10 +20,10 @@ class MessagesApiMockTest {
         }
         val api = MessagesApi(client)
 
-        val result = api.send("ws-1", "chat-1", "Hello")
+        val result = api.send(WorkspaceId("ws-1"), ChatId("chat-1"), "Hello")
 
         assertEquals("/public/v1/chat.message.send", capturedPath)
-        assertEquals("msg-123", result.messageId)
+        assertEquals(ChatMessageId("msg-123"), result.messageId)
         assertTrue(capturedBody.contains("\"workspaceId\":\"ws-1\""))
         assertTrue(capturedBody.contains("\"chatId\":\"chat-1\""))
         assertTrue(capturedBody.contains("\"markdown\":\"Hello\""))
@@ -37,7 +38,7 @@ class MessagesApiMockTest {
         }
         val api = MessagesApi(client)
 
-        api.send("ws-1", "chat-1", "With files", listOf("file-1", "file-2"), "reply-msg")
+        api.send(WorkspaceId("ws-1"), ChatId("chat-1"), "With files", listOf("file-1", "file-2"), ChatMessageId("reply-msg"))
 
         assertTrue(capturedBody.contains("\"fileIds\":[\"file-1\",\"file-2\"]"))
         assertTrue(capturedBody.contains("\"replyTo\":\"reply-msg\""))
@@ -52,7 +53,7 @@ class MessagesApiMockTest {
         }
         val api = MessagesApi(client)
 
-        val result = api.edit("ws-1", "chat-1", "msg-1", "Updated")
+        val result = api.edit(WorkspaceId("ws-1"), ChatId("chat-1"), ChatMessageId("msg-1"), "Updated")
 
         assertEquals("/public/v1/chat.message.edit", capturedPath)
         assertEquals("2024-01-01T00:00:00Z", result.updatedAt)
@@ -67,7 +68,7 @@ class MessagesApiMockTest {
         }
         val api = MessagesApi(client)
 
-        api.delete("ws-1", "chat-1", "msg-1")
+        api.delete(WorkspaceId("ws-1"), ChatId("chat-1"), ChatMessageId("msg-1"))
 
         assertEquals("/public/v1/chat.message.delete", capturedPath)
     }
@@ -81,10 +82,10 @@ class MessagesApiMockTest {
         }
         val api = MessagesApi(client)
 
-        val result = api.forward("ws-1", "chat-src", "msg-1", "chat-dst", "Forwarded")
+        val result = api.forward(WorkspaceId("ws-1"), ChatId("chat-src"), ChatMessageId("msg-1"), ChatId("chat-dst"), "Forwarded")
 
         assertEquals("/public/v1/chat.message.forward", capturedPath)
-        assertEquals("fwd-1", result.messageId)
+        assertEquals(ChatMessageId("fwd-1"), result.messageId)
     }
 
     @Test
@@ -98,10 +99,10 @@ class MessagesApiMockTest {
         }
         val api = MessagesApi(client)
 
-        val result = api.sendV2(workspaceId = "ws-1", chatId = "chat-1", text = "Hello v2")
+        val result = api.sendV2(workspaceId = WorkspaceId("ws-1"), chatId = ChatId("chat-1"), text = "Hello v2")
 
         assertEquals("/public/v2/sendMessage", capturedPath)
-        assertEquals("msg-v2", result.messageId)
+        assertEquals(ChatMessageId("msg-v2"), result.messageId)
         assertTrue(capturedBody.contains("\"workspaceId\":\"ws-1\""))
         assertTrue(capturedBody.contains("\"chatId\":\"chat-1\""))
     }
@@ -117,7 +118,7 @@ class MessagesApiMockTest {
         }
         val api = MessagesApi(client)
 
-        api.pin("ws-1", "chat-1", "msg-1")
+        api.pin(WorkspaceId("ws-1"), ChatId("chat-1"), ChatMessageId("msg-1"))
 
         assertEquals("/public/v2/pinMessage", capturedPath)
         assertTrue(capturedBody.contains("\"workspaceId\":\"ws-1\""))
@@ -132,7 +133,7 @@ class MessagesApiMockTest {
         }
         val api = MessagesApi(client)
 
-        api.unpin("ws-1", "chat-1", "msg-1")
+        api.unpin(WorkspaceId("ws-1"), ChatId("chat-1"), ChatMessageId("msg-1"))
 
         assertEquals("/public/v2/unpinMessage", capturedPath)
     }
@@ -148,7 +149,7 @@ class MessagesApiMockTest {
         }
         val api = MessagesApi(client)
 
-        val result = api.toggleReaction("ws-1", "chat-1", "msg-1", "👍")
+        val result = api.toggleReaction(WorkspaceId("ws-1"), ChatId("chat-1"), ChatMessageId("msg-1"), "👍")
 
         assertEquals("/public/v2/toggleReaction", capturedPath)
         assertTrue(capturedBody.contains("\"emoji\":\"👍\""))
@@ -167,7 +168,7 @@ class MessagesApiMockTest {
         }
         val api = MessagesApi(client)
 
-        val result = api.getMessages("ws-1", "chat-1", pageSize = 10)
+        val result = api.getMessages(WorkspaceId("ws-1"), ChatId("chat-1"), pageSize = 10)
 
         assertEquals("/public/v2/getMessages", capturedPath)
         assertTrue(result.messages.isEmpty())
@@ -191,10 +192,10 @@ class MessagesApiMockTest {
         }
         val api = MessagesApi(client)
 
-        val result = api.getById("ws-1", "chat-1", "msg-1")
+        val result = api.getById(WorkspaceId("ws-1"), ChatId("chat-1"), ChatMessageId("msg-1"))
 
         assertEquals("/public/v2/getMessageById", capturedPath)
-        assertEquals("msg-1", result.messageId)
+        assertEquals(ChatMessageId("msg-1"), result.messageId)
         assertTrue(capturedBody.contains("\"workspaceId\":\"ws-1\""))
     }
 
@@ -209,7 +210,7 @@ class MessagesApiMockTest {
         }
         val api = MessagesApi(client)
 
-        val result = api.deleteV2("ws-1", "chat-1", listOf("m1", "m2"))
+        val result = api.deleteV2(WorkspaceId("ws-1"), ChatId("chat-1"), listOf(ChatMessageId("m1"), ChatMessageId("m2")))
 
         assertEquals("/public/v2/deleteMessages", capturedPath)
         assertEquals(2, result.deletedMessageIds.size)
@@ -227,7 +228,7 @@ class MessagesApiMockTest {
         }
         val api = MessagesApi(client)
 
-        api.editV2("ws-1", "chat-1", "msg-1", text = "edited")
+        api.editV2(WorkspaceId("ws-1"), ChatId("chat-1"), ChatMessageId("msg-1"), text = "edited")
 
         assertEquals("/public/v2/editMessage", capturedPath)
         assertTrue(capturedBody.contains("\"workspaceId\":\"ws-1\""))
@@ -245,10 +246,10 @@ class MessagesApiMockTest {
         }
         val api = MessagesApi(client)
 
-        val result = api.forwardV2("ws-1", "chat-src", "chat-dst", listOf("msg-1"))
+        val result = api.forwardV2(WorkspaceId("ws-1"), ChatId("chat-src"), ChatId("chat-dst"), listOf(ChatMessageId("msg-1")))
 
         assertEquals("/public/v2/forwardMessage", capturedPath)
-        assertEquals("fwd-1", result.messageId)
+        assertEquals(ChatMessageId("fwd-1"), result.messageId)
         assertTrue(capturedBody.contains("\"workspaceId\":\"ws-1\""))
         assertTrue(capturedBody.contains("\"sourceMessageIds\""))
     }

@@ -1,16 +1,38 @@
 package ru.rt.yuchatbotapi.model
 
+import kotlinx.serialization.Serializable
+
 /** ID воркспейса */
-typealias WorkspaceId = String
+@JvmInline
+@Serializable
+value class WorkspaceId(val value: String) {
+    override fun toString(): String = value
+}
 
 /** ID чата */
-typealias ChatId = String
+@JvmInline
+@Serializable
+value class ChatId(val value: String) {
+    override fun toString(): String = value
+}
 
 /** ID сообщения */
-typealias ChatMessageId = String
+@JvmInline
+@Serializable
+value class ChatMessageId(val value: String) {
+    override fun toString(): String = value
+}
 
 /** ID аккаунта пользователя */
-typealias AccountId = String
+@JvmInline
+@Serializable
+value class AccountId(val value: String) {
+    override fun toString(): String = value
+}
 
 /** ID пользователя в конкретном воркспейсе */
-typealias MembershipId = String
+@JvmInline
+@Serializable
+value class MembershipId(val value: String) {
+    override fun toString(): String = value
+}

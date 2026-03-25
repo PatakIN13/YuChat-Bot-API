@@ -54,7 +54,7 @@ data class UpdateV2(
  */
 @Serializable
 data class Notification(
-    val workspaceId: String,
+    @get:JvmName("getWorkspaceId") val workspaceId: WorkspaceId,
     val timestamp: String,
     val memberJoinedEvent: MemberEvent? = null,
     val memberInvitedEvent: MemberEvent? = null,
@@ -74,65 +74,65 @@ data class Notification(
 
 /** Событие, связанное с участником воркспейса (v2). */
 @Serializable
-data class MemberEvent(val memberId: String)
+data class MemberEvent(@get:JvmName("getMemberId") val memberId: MembershipId)
 
 /** Событие изменения роли участника в воркспейсе (v2). */
 @Serializable
 data class MemberChangedRoleEvent(
-    val memberId: String,
+    @get:JvmName("getMemberId") val memberId: MembershipId,
     val newRole: WorkspaceRole
 )
 
 /** Уведомление о создании чата (v2). */
 @Serializable
 data class ChatCreatedNotification(
-    val chatId: String,
+    @get:JvmName("getChatId") val chatId: ChatId,
     val metadata: ChatMetadata
 )
 
 /** Событие переключения реакции на сообщение (v2). */
 @Serializable
 data class ReactionToggledEvent(
-    val chatId: String,
-    val messageId: String,
+    @get:JvmName("getChatId") val chatId: ChatId,
+    @get:JvmName("getMessageId") val messageId: ChatMessageId,
     val emoji: String,
-    val reactedBy: String,
+    @get:JvmName("getReactedBy") val reactedBy: MembershipId,
     val wasSet: Boolean
 )
 
 /** Событие, связанное с сообщением (редактирование/удаление) (v2). */
 @Serializable
 data class MessageRefEvent(
-    val chatId: String,
-    val messageId: String
+    @get:JvmName("getChatId") val chatId: ChatId,
+    @get:JvmName("getMessageId") val messageId: ChatMessageId
 )
 
 /** Событие, связанное с участником чата (v2). */
 @Serializable
 data class ChatMemberEvent(
-    val chatId: String,
-    val memberId: String
+    @get:JvmName("getChatId") val chatId: ChatId,
+    @get:JvmName("getMemberId") val memberId: MembershipId
 )
 
 /** Событие приглашения участника в чат (v2). */
 @Serializable
 data class ChatMemberInvitedEvent(
-    val chatId: String,
-    val memberId: String,
-    val inviterMemberId: String
+    @get:JvmName("getChatId") val chatId: ChatId,
+    @get:JvmName("getMemberId") val memberId: MembershipId,
+    @get:JvmName("getInviterMemberId") val inviterMemberId: MembershipId
 )
 
 /** Событие изменения роли участника в чате (v2). */
 @Serializable
 data class ChatMemberChangedRoleEvent(
-    val chatId: String,
-    val memberId: String,
+    @get:JvmName("getChatId") val chatId: ChatId,
+    @get:JvmName("getMemberId") val memberId: MembershipId,
     val newRole: ChatRole
 )
 
 /** Событие, связанное с чатом (архивация/разархивация) (v2). */
 @Serializable
-data class ChatRefEvent(val chatId: String)
+data class ChatRefEvent(@get:JvmName("getChatId") val chatId: ChatId)
 
 /**
  * Действие с кнопкой сообщения (v2).
@@ -141,16 +141,16 @@ data class ChatRefEvent(val chatId: String)
  */
 @Serializable
 data class MessageAction(
-    val workspaceId: String,
-    val chatId: String,
-    val messageId: String,
+    @get:JvmName("getWorkspaceId") val workspaceId: WorkspaceId,
+    @get:JvmName("getChatId") val chatId: ChatId,
+    @get:JvmName("getMessageId") val messageId: ChatMessageId,
     val pressedButtonCommand: CommandButton? = null
 )
 
 /** Приглашение бота в воркспейс (v2). */
 @Serializable
 data class WorkspaceInvite(
-    val workspaceId: String,
+    @get:JvmName("getWorkspaceId") val workspaceId: WorkspaceId,
     val inviterName: String,
     val inviterEmail: String
 )

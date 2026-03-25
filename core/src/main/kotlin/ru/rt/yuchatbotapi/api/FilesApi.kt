@@ -27,16 +27,16 @@ class FilesApi internal constructor(private val client: YuChatHttpClient) {
      * @return [FilePreSignedResponse] с URL и fileId
      */
     suspend fun getUploadUrl(
-        workspaceId: String,
+        workspaceId: WorkspaceId,
         fileName: String,
         mediaType: MediaType,
-        accessChatId: String? = null
+        accessChatId: ChatId? = null
     ): FilePreSignedResponse {
         return client.post("/public/v1/file.getPreSignedUrl", GetFilePreSignedV1Request(
-            workspaceId = workspaceId,
+            workspaceId = workspaceId.value,
             fileName = fileName,
             mediaType = mediaType,
-            accessChatId = accessChatId
+            accessChatId = accessChatId?.value
         ))
     }
 
@@ -59,10 +59,10 @@ class FilesApi internal constructor(private val client: YuChatHttpClient) {
      * @return fileId загруженного файла
      */
     suspend fun upload(
-        workspaceId: String,
+        workspaceId: WorkspaceId,
         file: File,
         mediaType: MediaType = MediaType.RAW,
-        accessChatId: String? = null
+        accessChatId: ChatId? = null
     ): String {
         val presigned = getUploadUrl(workspaceId, file.name, mediaType, accessChatId)
         client.httpClient.put(presigned.url) {
@@ -74,13 +74,13 @@ class FilesApi internal constructor(private val client: YuChatHttpClient) {
 
     /** Получение URL для загрузки файла (v2) */
     suspend fun getUploadUrlV2(
-        workspaceId: String,
+        workspaceId: WorkspaceId,
         fileName: String,
-        accessChatId: String? = null
+        accessChatId: ChatId? = null
     ): FileUploadResponse {
         @Serializable
         data class Req(val workspaceId: String, val fileName: String, val accessChatId: String? = null)
-        return client.post("/public/v2/getFileUploadUrl", Req(workspaceId, fileName, accessChatId))
+        return client.post("/public/v2/getFileUploadUrl", Req(workspaceId.value, fileName, accessChatId?.value))
     }
 
     /** Получение URL для скачивания файла (v2) */

@@ -17,7 +17,7 @@ class FilesJavaApi internal constructor(private val api: FilesApi) {
         mediaType: MediaType,
         accessChatId: String? = null
     ): CompletableFuture<FilePreSignedResponse> = async {
-        api.getUploadUrl(workspaceId, fileName, mediaType, accessChatId)
+        api.getUploadUrl(WorkspaceId(workspaceId), fileName, mediaType, accessChatId?.let { ChatId(it) })
     }
 
     fun getDownloadUrl(fileId: String): CompletableFuture<FileDownloadResponse> = async {
@@ -31,11 +31,11 @@ class FilesJavaApi internal constructor(private val api: FilesApi) {
         mediaType: MediaType = MediaType.RAW,
         accessChatId: String? = null
     ): CompletableFuture<String> = async {
-        api.upload(workspaceId, file, mediaType, accessChatId)
+        api.upload(WorkspaceId(workspaceId), file, mediaType, accessChatId?.let { ChatId(it) })
     }
 
     fun getUploadUrlV2(workspaceId: String, fileName: String, accessChatId: String? = null): CompletableFuture<FileUploadResponse> = async {
-        api.getUploadUrlV2(workspaceId, fileName, accessChatId)
+        api.getUploadUrlV2(WorkspaceId(workspaceId), fileName, accessChatId?.let { ChatId(it) })
     }
 
     fun getDownloadUrlV2(fileId: String): CompletableFuture<FileDownloadResponse> = async {

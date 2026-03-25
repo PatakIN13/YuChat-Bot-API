@@ -28,7 +28,7 @@ class ChatSerializationTest {
         """.trimIndent()
 
         val chat = json.decodeFromString<WorkspaceChat>(raw)
-        assertEquals("c56Y0kgi", chat.chatId)
+        assertEquals(ChatId("c56Y0kgi"), chat.chatId)
         assertEquals(WorkspaceChatType.PUBLIC, chat.type)
         assertEquals(false, chat.announceChannel)
         assertEquals(2, chat.membershipIds?.size)
@@ -58,7 +58,7 @@ class ChatSerializationTest {
         """.trimIndent()
 
         val chat = json.decodeFromString<ChatMembership>(raw)
-        assertEquals("w:AIQffAsGia", chat.chatId)
+        assertEquals(ChatId("w:AIQffAsGia"), chat.chatId)
         assertEquals(ChatRole.ADMIN, chat.chatRole)
         val ws = chat.metadata.workspace!!
         assertEquals("Новости", ws.name)
@@ -82,7 +82,7 @@ class ChatSerializationTest {
         """.trimIndent()
 
         val chat = json.decodeFromString<ChatMembership>(raw)
-        assertEquals("mb2", chat.metadata.personal!!.otherMembershipId)
+        assertEquals(MembershipId("mb2"), chat.metadata.personal!!.otherMembershipId)
         assertNull(chat.metadata.workspace)
     }
 
@@ -104,7 +104,7 @@ class ChatSerializationTest {
         """.trimIndent()
 
         val chat = json.decodeFromString<ChatMembership>(raw)
-        assertEquals("w:parent", chat.metadata.thread!!.parentChatId)
-        assertEquals("msg1", chat.metadata.thread!!.parentMessageId)
+        assertEquals(ChatId("w:parent"), chat.metadata.thread!!.parentChatId)
+        assertEquals(ChatMessageId("msg1"), chat.metadata.thread!!.parentMessageId)
     }
 }

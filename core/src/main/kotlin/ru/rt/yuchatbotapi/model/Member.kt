@@ -11,7 +11,7 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class Member(
-    val memberId: String? = null,
+    @get:JvmName("getMemberId") val memberId: MembershipId? = null,
     val profile: ProfileV1? = null,
     val roleType: MemberRoleType? = null,
     val presence: PresenceV1? = null,
@@ -53,7 +53,7 @@ data class PresenceV1(
  */
 @Serializable
 data class MemberInfo(
-    val membershipId: String,
+    @get:JvmName("getMembershipId") val membershipId: MembershipId,
     val profile: Profile,
     val createdAt: String,
     val updatedAt: String,
@@ -72,7 +72,7 @@ data class MemberInfo(
  */
 @Serializable
 data class Profile(
-    val accountId: String,
+    @get:JvmName("getAccountId") val accountId: AccountId,
     val createdAt: String,
     val updatedAt: String,
     val accountType: AccountType,

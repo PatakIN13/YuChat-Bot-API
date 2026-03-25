@@ -37,7 +37,7 @@ class BotSerializationTest {
 
         val me = json.decodeFromString<MeInfo>(raw)
         assertEquals("Test Bot", me.profile.fullName)
-        assertEquals(listOf("w1", "w2"), me.workspaces)
+        assertEquals(listOf(WorkspaceId("w1"), WorkspaceId("w2")), me.workspaces)
         assertEquals(1, me.updateApiVersion)
         assertEquals(listOf(UpdateSetting.MESSAGE, UpdateSetting.WORKSPACE_INVITE), me.updateSettings)
         assertEquals(false, me.autoAcceptWorkspaceInvite)

@@ -10,7 +10,7 @@ import java.util.concurrent.CompletableFuture
 class MembersJavaApi internal constructor(private val api: MembersApi) {
 
     fun list(workspaceId: String): CompletableFuture<List<Member>> = async {
-        api.list(workspaceId)
+        api.list(WorkspaceId(workspaceId))
     }
 
     @JvmOverloads
@@ -19,22 +19,22 @@ class MembersJavaApi internal constructor(private val api: MembersApi) {
         pageSize: Int? = null,
         pageToken: String? = null
     ): CompletableFuture<GetMembersResponse> = async {
-        api.getMembers(workspaceId, pageSize, pageToken)
+        api.getMembers(WorkspaceId(workspaceId), pageSize, pageToken)
     }
 
     fun invite(workspaceId: String, emails: List<String>): CompletableFuture<Void> = asyncVoid {
-        api.invite(workspaceId, emails)
+        api.invite(WorkspaceId(workspaceId), emails)
     }
 
     fun remove(workspaceId: String, membershipId: String): CompletableFuture<Void> = asyncVoid {
-        api.remove(workspaceId, membershipId)
+        api.remove(WorkspaceId(workspaceId), MembershipId(membershipId))
     }
 
     fun setRole(workspaceId: String, membershipId: String, role: WorkspaceRole): CompletableFuture<Void> = asyncVoid {
-        api.setRole(workspaceId, membershipId, role)
+        api.setRole(WorkspaceId(workspaceId), MembershipId(membershipId), role)
     }
 
     fun getInfo(workspaceId: String, membershipIds: List<String>): CompletableFuture<List<MemberInfo>> = async {
-        api.getInfo(workspaceId, membershipIds)
+        api.getInfo(WorkspaceId(workspaceId), membershipIds.map { MembershipId(it) })
     }
 }

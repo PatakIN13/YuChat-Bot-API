@@ -54,7 +54,7 @@ class UpdateSerializationTest {
         assertEquals(43L, update.updateId)
         assertNull(update.newChatMessage)
         assertNotNull(update.inviteToChat)
-        assertEquals("a1", update.inviteToChat!!.inviter)
+        assertEquals(AccountId("a1"), update.inviteToChat!!.inviter)
     }
 
     @Test
@@ -73,7 +73,7 @@ class UpdateSerializationTest {
 
         val update = json.decodeFromString<UpdateV1>(raw)
         assertNotNull(update.joinedToChat)
-        assertEquals(listOf("mb2", "mb3"), update.joinedToChat!!.joined)
+        assertEquals(listOf(MembershipId("mb2"), MembershipId("mb3")), update.joinedToChat!!.joined)
     }
 
     @Test
@@ -184,7 +184,7 @@ class UpdateSerializationTest {
 
         val update = json.decodeFromString<UpdateV2>(raw)
         val event = update.notification!!.memberChangedRoleEvent!!
-        assertEquals("mb1", event.memberId)
+        assertEquals(MembershipId("mb1"), event.memberId)
         assertEquals(WorkspaceRole.ADMIN, event.newRole)
     }
 }

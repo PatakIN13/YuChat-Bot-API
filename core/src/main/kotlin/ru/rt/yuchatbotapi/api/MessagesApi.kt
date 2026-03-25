@@ -28,18 +28,18 @@ class MessagesApi internal constructor(private val client: YuChatHttpClient) {
      * @throws RateLimitException при превышении лимита запросов
      */
     suspend fun send(
-        workspaceId: String,
-        chatId: String,
+        workspaceId: WorkspaceId,
+        chatId: ChatId,
         text: String,
         fileIds: List<String>? = null,
-        replyTo: String? = null
+        replyTo: ChatMessageId? = null
     ): SendMessageResponse {
         return client.post("/public/v1/chat.message.send", SendMessageV1Request(
-            workspaceId = workspaceId,
-            chatId = chatId,
+            workspaceId = workspaceId.value,
+            chatId = chatId.value,
             markdown = text,
             fileIds = fileIds,
-            replyTo = replyTo
+            replyTo = replyTo?.value
         ))
     }
 
@@ -53,15 +53,15 @@ class MessagesApi internal constructor(private val client: YuChatHttpClient) {
      * @return [EditMessageResponse] с временной меткой обновления
      */
     suspend fun edit(
-        workspaceId: String,
-        chatId: String,
-        messageId: String,
+        workspaceId: WorkspaceId,
+        chatId: ChatId,
+        messageId: ChatMessageId,
         text: String
     ): EditMessageResponse {
         return client.post("/public/v1/chat.message.edit", EditMessageV1Request(
-            workspaceId = workspaceId,
-            chatId = chatId,
-            chatMessageId = messageId,
+            workspaceId = workspaceId.value,
+            chatId = chatId.value,
+            chatMessageId = messageId.value,
             newMarkdown = text
         ))
     }
@@ -74,14 +74,14 @@ class MessagesApi internal constructor(private val client: YuChatHttpClient) {
      * @param messageId ID сообщения для удаления
      */
     suspend fun delete(
-        workspaceId: String,
-        chatId: String,
-        messageId: String
+        workspaceId: WorkspaceId,
+        chatId: ChatId,
+        messageId: ChatMessageId
     ): DeleteMessageResponse {
         return client.post("/public/v1/chat.message.delete", DeleteMessageV1Request(
-            workspaceId = workspaceId,
-            chatId = chatId,
-            chatMessageId = messageId
+            workspaceId = workspaceId.value,
+            chatId = chatId.value,
+            chatMessageId = messageId.value
         ))
     }
 
@@ -95,17 +95,17 @@ class MessagesApi internal constructor(private val client: YuChatHttpClient) {
      * @param text сопроводительный текст
      */
     suspend fun forward(
-        workspaceId: String,
-        sourceChatId: String,
-        sourceMessageId: String,
-        targetChatId: String,
+        workspaceId: WorkspaceId,
+        sourceChatId: ChatId,
+        sourceMessageId: ChatMessageId,
+        targetChatId: ChatId,
         text: String
     ): ForwardMessageResponse {
         return client.post("/public/v1/chat.message.forward", ForwardMessageV1Request(
-            workspaceId = workspaceId,
-            sourceChatId = sourceChatId,
-            sourceChatMessageId = sourceMessageId,
-            targetChatId = targetChatId,
+            workspaceId = workspaceId.value,
+            sourceChatId = sourceChatId.value,
+            sourceChatMessageId = sourceMessageId.value,
+            targetChatId = targetChatId.value,
             markdown = text
         ))
     }
@@ -124,19 +124,19 @@ class MessagesApi internal constructor(private val client: YuChatHttpClient) {
      * @return [SendMessageResponse] с ID отправленного сообщения
      */
     suspend fun sendV2(
-        workspaceId: String,
-        chatId: String,
+        workspaceId: WorkspaceId,
+        chatId: ChatId,
         text: String? = null,
         fileIds: List<String>? = null,
-        replyTo: String? = null,
+        replyTo: ChatMessageId? = null,
         buttonBar: ButtonBar? = null
     ): SendMessageResponse {
         return client.post("/public/v2/sendMessage", SendMessageV2Request(
-            workspaceId = workspaceId,
-            chatId = chatId,
+            workspaceId = workspaceId.value,
+            chatId = chatId.value,
             text = text,
             fileIds = fileIds,
-            replyTo = replyTo,
+            replyTo = replyTo?.value,
             buttonBar = buttonBar
         ))
     }
@@ -151,15 +151,15 @@ class MessagesApi internal constructor(private val client: YuChatHttpClient) {
      * @param getBefore если true — получить сообщения до якоря, иначе после
      */
     suspend fun getMessages(
-        workspaceId: String,
-        chatId: String,
+        workspaceId: WorkspaceId,
+        chatId: ChatId,
         pageSize: Int? = null,
         anchorMessageId: String? = null,
         getBefore: Boolean? = null
     ): GetMessagesResponse {
         return client.post("/public/v2/getMessages", GetMessagesV2Request(
-            workspaceId = workspaceId,
-            chatId = chatId,
+            workspaceId = workspaceId.value,
+            chatId = chatId.value,
             pageSize = pageSize,
             anchorMessageId = anchorMessageId,
             getBefore = getBefore
@@ -167,53 +167,53 @@ class MessagesApi internal constructor(private val client: YuChatHttpClient) {
     }
 
     /** Получение сообщения по ID (v2) */
-    suspend fun getById(workspaceId: String, chatId: String, messageId: String): Message {
+    suspend fun getById(workspaceId: WorkspaceId, chatId: ChatId, messageId: ChatMessageId): Message {
         @Serializable
         data class Req(val workspaceId: String, val chatId: String, val messageId: String)
-        return client.post("/public/v2/getMessageById", Req(workspaceId, chatId, messageId))
+        return client.post("/public/v2/getMessageById", Req(workspaceId.value, chatId.value, messageId.value))
     }
 
     /** Закрепление сообщения (v2) */
-    suspend fun pin(workspaceId: String, chatId: String, messageId: String) {
+    suspend fun pin(workspaceId: WorkspaceId, chatId: ChatId, messageId: ChatMessageId) {
         @Serializable
         data class Req(val workspaceId: String, val chatId: String, val messageId: String)
-        client.postNoContent("/public/v2/pinMessage", Req(workspaceId, chatId, messageId))
+        client.postNoContent("/public/v2/pinMessage", Req(workspaceId.value, chatId.value, messageId.value))
     }
 
     /** Открепление сообщения (v2) */
-    suspend fun unpin(workspaceId: String, chatId: String, messageId: String) {
+    suspend fun unpin(workspaceId: WorkspaceId, chatId: ChatId, messageId: ChatMessageId) {
         @Serializable
         data class Req(val workspaceId: String, val chatId: String, val messageId: String)
-        client.postNoContent("/public/v2/unpinMessage", Req(workspaceId, chatId, messageId))
+        client.postNoContent("/public/v2/unpinMessage", Req(workspaceId.value, chatId.value, messageId.value))
     }
 
     /** Добавление/снятие реакции (v2) */
-    suspend fun toggleReaction(workspaceId: String, chatId: String, messageId: String, emoji: String): ToggleReactionResponse {
+    suspend fun toggleReaction(workspaceId: WorkspaceId, chatId: ChatId, messageId: ChatMessageId, emoji: String): ToggleReactionResponse {
         @Serializable
         data class Req(val workspaceId: String, val chatId: String, val messageId: String, val emoji: String)
-        return client.post("/public/v2/toggleReaction", Req(workspaceId, chatId, messageId, emoji))
+        return client.post("/public/v2/toggleReaction", Req(workspaceId.value, chatId.value, messageId.value, emoji))
     }
 
     /** Пакетное удаление сообщений (v2) */
-    suspend fun deleteV2(workspaceId: String, chatId: String, messageIds: List<String>): DeleteMessagesResponse {
+    suspend fun deleteV2(workspaceId: WorkspaceId, chatId: ChatId, messageIds: List<ChatMessageId>): DeleteMessagesResponse {
         @Serializable
         data class Req(val workspaceId: String, val chatId: String, val messageIds: List<String>)
-        return client.post("/public/v2/deleteMessages", Req(workspaceId, chatId, messageIds))
+        return client.post("/public/v2/deleteMessages", Req(workspaceId.value, chatId.value, messageIds.map { it.value }))
     }
 
     /** Редактирование сообщения (v2) */
     suspend fun editV2(
-        workspaceId: String,
-        chatId: String,
-        messageId: String,
+        workspaceId: WorkspaceId,
+        chatId: ChatId,
+        messageId: ChatMessageId,
         text: String? = null,
         fileIds: List<String>? = null,
         buttonBar: ButtonBar? = null
     ) {
         client.postNoContent("/public/v2/editMessage", EditMessageV2Request(
-            workspaceId = workspaceId,
-            chatId = chatId,
-            messageId = messageId,
+            workspaceId = workspaceId.value,
+            chatId = chatId.value,
+            messageId = messageId.value,
             text = text,
             fileIds = fileIds,
             buttonBar = buttonBar
@@ -222,17 +222,17 @@ class MessagesApi internal constructor(private val client: YuChatHttpClient) {
 
     /** Пересылка сообщения (v2) */
     suspend fun forwardV2(
-        workspaceId: String,
-        sourceChatId: String,
-        targetChatId: String,
-        sourceMessageIds: List<String>,
+        workspaceId: WorkspaceId,
+        sourceChatId: ChatId,
+        targetChatId: ChatId,
+        sourceMessageIds: List<ChatMessageId>,
         text: String? = null
     ): SendMessageResponse {
         return client.post("/public/v2/forwardMessage", ForwardMessageV2Request(
-            workspaceId = workspaceId,
-            sourceChatId = sourceChatId,
-            targetChatId = targetChatId,
-            sourceMessageIds = sourceMessageIds,
+            workspaceId = workspaceId.value,
+            sourceChatId = sourceChatId.value,
+            targetChatId = targetChatId.value,
+            sourceMessageIds = sourceMessageIds.map { it.value },
             text = text
         ))
     }
@@ -252,7 +252,7 @@ internal data class SendMessageV1Request(
 /** Ответ на отправку сообщения. */
 @Serializable
 data class SendMessageResponse(
-    val messageId: String
+    @get:JvmName("getMessageId") val messageId: ChatMessageId
 )
 
 @Serializable
@@ -289,7 +289,7 @@ internal data class ForwardMessageV1Request(
 
 /** Ответ на пересылку сообщения (v1). */
 @Serializable
-data class ForwardMessageResponse(val messageId: String? = null)
+data class ForwardMessageResponse(@get:JvmName("getMessageId") val messageId: ChatMessageId? = null)
 
 @Serializable
 internal data class SendMessageV2Request(
