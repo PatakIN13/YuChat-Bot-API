@@ -1,2 +1,6 @@
 yuchat.bot.token=your-bot-token-here
 # yuchat.base.url=https://yuchat.ai
+# yuchat.webhook.url=https://example.com/webhook
+# yuchat.webhook.port=8080
+# yuchat.webhook.path=/webhook
+# yuchat.webhook.secret=my-secret-token
