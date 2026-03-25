@@ -180,7 +180,8 @@ bot.messages.send(
 
 ```kotlin
 val me = bot.bot.getMe()  // v2
-println("Bot: ${me.name}, scopes: ${me.scopes}")
+println("Bot: ${me.profile.fullName}, workspaces: ${me.workspaces}")
+println("Scope: ${me.scope.type}, API version: ${me.updateApiVersion}")
 ```
 
 ## Long Polling
@@ -389,16 +390,16 @@ SDK предоставляет **единый плоский API**. Пользо
 `send`, `edit`, `delete`, `forward` (v1) · `sendV2`, `editV2`, `deleteV2`, `forwardV2` (v2) · `pin`, `unpin`, `toggleReaction`, `getMessages`, `getById` (v2)
 
 ### `bot.chats`
-`createWorkspace`, `createPersonal`, `createThread`, `listWorkspace`, `invite`, `kick` (v1) · `getWorkspaceChats`, `getMyChats`, `getInfo`, `leave`, `archive`, `unarchive`, `setMemberRole`, `createUserEventsChat` (v2)
+`createWorkspace`, `createPersonal`, `createThread`, `listWorkspace`, `invite`, `kick` (v1) · `getWorkspaceChats`, `getMyChats`, `getInfo`, `leave`, `archive`, `unarchive`, `setMemberRole`, `inviteV2`, `kickV2`, `createUserEventsChat`, `createWorkspaceChatV2`, `getOrCreatePersonalChat`, `getOrCreateThreadChat` (v2)
 
 ### `bot.members`
-`list` (v1) · `getMembers`, `inviteMember`, `removeMember`, `setRole`, `getInfo` (v2)
+`list` (v1) · `getMembers`, `invite`, `remove`, `setRole`, `getInfo` (v2)
 
 ### `bot.files`
 `getUploadUrl`, `getDownloadUrl` (v1) · `upload` (helper) · `getUploadUrlV2`, `getDownloadUrlV2` (v2)
 
 ### `bot.updates`
-`getUpdates` (v1/v2) · `setUpdateSettings` (v2) · `getWorkspaceInvites`, `acceptInvite`, `rejectInvites` (v2)
+`getUpdates` (v1) · `getUpdatesV2`, `setUpdateSettings`, `getWorkspaceInvites`, `acceptWorkspaceInvite`, `rejectAllWorkspaceInvites` (v2)
 
 ### `bot.webhooks`
 `setWebhook`, `deleteWebhook`, `getWebhookInfo` (v1) · `setWebhookV2`, `deleteWebhookV2`, `getWebhookInfoV2` (v2)
