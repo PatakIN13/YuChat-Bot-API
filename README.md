@@ -1,5 +1,8 @@
 # YuChat Bot API SDK
 
+[![Maven Central](https://img.shields.io/maven-central/v/space.patakin.yuchatbotapi/yuchatbotapi-core)](https://central.sonatype.com/namespace/space.patakin.yuchatbotapi)
+[![API Docs](https://img.shields.io/badge/docs-Dokka-blue)](https://patakin13.github.io/YuChat-Bot-API/)
+
 Kotlin SDK для работы с [YuChat](https://yuchat.ai) Bot API — корпоративным мессенджером.
 
 Библиотека оборачивает HTTP API (v1 + v2) в типобезопасный, идиоматичный Kotlin-клиент с поддержкой long-polling и webhook.
