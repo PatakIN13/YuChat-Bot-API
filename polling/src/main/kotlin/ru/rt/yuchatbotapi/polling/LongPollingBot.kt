@@ -16,7 +16,7 @@ import ru.rt.yuchatbotapi.model.UpdateSetting
  * polling.start {
  *     onMessage { update ->
  *         val msg = update.newChatMessage!!
- *         bot.messages.send(msg.workspaceId, msg.chatId, "Echo: ${msg.markdown}")
+ *         bot.messages.send(msg.workspaceId, msg.chatId, "Echo: ${msg.text}")
  *     }
  * }
  * ```

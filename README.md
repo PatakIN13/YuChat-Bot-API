@@ -37,14 +37,14 @@ includeBuild("/path/to/yuchatbotapi")
 // build.gradle.kts
 dependencies {
     // Для Kotlin — модели, клиент, все API-методы
-    implementation("ru.rt.yuchatbotapi:yuchatbotapi-core:0.1.0")
+    implementation("ru.rt.yuchatbotapi:yuchatbotapi-core:0.1.1")
 
     // Для Java — вместо core, все методы через CompletableFuture
-    implementation("ru.rt.yuchatbotapi:yuchatbotapi-java:0.1.0")
+    implementation("ru.rt.yuchatbotapi:yuchatbotapi-java:0.1.1")
 
     // Опционально — выберите один из способов получения обновлений:
-    implementation("ru.rt.yuchatbotapi:yuchatbotapi-polling:0.1.0")   // long-polling + DSL диспетчер
-    implementation("ru.rt.yuchatbotapi:yuchatbotapi-webhook:0.1.0")    // встроенный webhook-сервер
+    implementation("ru.rt.yuchatbotapi:yuchatbotapi-polling:0.1.1")   // long-polling + DSL диспетчер
+    implementation("ru.rt.yuchatbotapi:yuchatbotapi-webhook:0.1.1")    // встроенный webhook-сервер
 }
 ```
 
