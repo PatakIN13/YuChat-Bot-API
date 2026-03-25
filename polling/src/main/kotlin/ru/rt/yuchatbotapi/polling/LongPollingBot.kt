@@ -60,6 +60,31 @@ class LongPollingBot(
 
             var offset: Long? = null
 
+            // Пропускаем накопившиеся обновления при старте
+            if (options.skipPending) {
+                try {
+                    var skipped = 0
+                    while (true) {
+                        if (options.apiVersion == 2) {
+                            val pending = client.updates.getUpdatesV2(offset, options.limit)
+                            if (pending.isEmpty()) break
+                            offset = pending.last().updateId + 1
+                            skipped += pending.size
+                        } else {
+                            val pending = client.updates.getUpdates(offset, options.limit)
+                            if (pending.isEmpty()) break
+                            offset = pending.last().updateId + 1
+                            skipped += pending.size
+                        }
+                    }
+                    if (skipped > 0) {
+                        logger.info("Skipped {} pending updates", skipped)
+                    }
+                } catch (e: Exception) {
+                    logger.warn("Failed to skip pending updates, starting from beginning", e)
+                }
+            }
+
             while (isActive) {
                 try {
                     if (options.apiVersion == 2) {

@@ -13,5 +13,7 @@ data class PollingOptions(
     /** Задержка при ошибке (мс) */
     val errorDelayMs: Long = 5000L,
     /** Автоматически вызвать setUpdateSettings при apiVersion=2 */
-    val autoConfigureV2: Boolean = true
+    val autoConfigureV2: Boolean = true,
+    /** Пропустить накопившиеся обновления при старте (сдвинуть offset до конца) */
+    val skipPending: Boolean = false
 )
