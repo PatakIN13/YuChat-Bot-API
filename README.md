@@ -94,7 +94,7 @@ YuChatBotJavaClient bot = new YuChatBotJavaClient("your-jwt-token", "https://yuc
 bot.messages.send(
     workspaceId = "workspace-id",
     chatId = "chat-id",
-    markdown = "Привет! 👋"
+    text = "Привет! 👋"
 )
 ```
 
@@ -181,7 +181,7 @@ bot.startPolling(PollingOptions(apiVersion = 1)) {
         bot.messages.send(
             workspaceId = msg.workspaceId,
             chatId = msg.chatId,
-            markdown = "Echo: ${msg.markdown}"
+            text = "Echo: ${msg.text}"
         )
     }
 
@@ -292,7 +292,7 @@ SDK предоставляет **единый плоский API**. Пользо
 import ru.rt.yuchatbotapi.exception.*
 
 try {
-    bot.messages.send(workspaceId = "ws", chatId = "chat", markdown = "test")
+    bot.messages.send(workspaceId = "ws", chatId = "chat", text = "test")
 } catch (e: AuthenticationException) {
     // 401 — невалидный токен
 } catch (e: RateLimitException) {
