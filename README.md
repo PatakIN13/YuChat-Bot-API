@@ -217,6 +217,21 @@ bot.startPolling(PollingOptions(apiVersion = 2)) {
 }
 ```
 
+### Настройки polling (PollingOptions)
+
+```kotlin
+PollingOptions(
+    apiVersion = 1,           // версия API (1 или 2)
+    limit = 20,               // количество обновлений за запрос
+    pollDelayMs = 500L,       // задержка между запросами (мс)
+    errorDelayMs = 5000L,     // задержка при ошибке (мс)
+    autoConfigureV2 = true,   // авто-настройка updateSettings для v2
+    skipPending = false        // пропустить накопленные обновления при старте
+)
+```
+
+**`skipPending = true`** — при запуске бот пропустит все накопленные обновления и начнёт обрабатывать только новые. Полезно, когда бот перезапускается и не нужно отвечать на старые сообщения.
+
 ## Webhook
 
 ```kotlin
