@@ -6,9 +6,9 @@ plugins {
 val ktorVersion = "2.3.7"
 
 dependencies {
-    api(project(":core"))
-    api(project(":polling"))
-    api(project(":webhook"))
+    api(project(":yuchatbotapi-core"))
+    api(project(":yuchatbotapi-polling"))
+    api(project(":yuchatbotapi-webhook"))
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.7.3")
     implementation("io.ktor:ktor-server-core:$ktorVersion")

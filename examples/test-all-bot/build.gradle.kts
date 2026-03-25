@@ -8,8 +8,8 @@ application {
 }
 
 dependencies {
-    implementation(project(":core"))
-    implementation(project(":polling"))
+    implementation(project(":yuchatbotapi-core"))
+    implementation(project(":yuchatbotapi-polling"))
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
     implementation("org.slf4j:slf4j-simple:2.0.9")
 }

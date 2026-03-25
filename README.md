@@ -1,6 +1,6 @@
 # YuChat Bot API SDK
 
-[![Maven Central](https://img.shields.io/maven-central/v/space.patakin.yuchatbotapi/core)](https://central.sonatype.com/namespace/space.patakin.yuchatbotapi)
+[![Maven Central](https://img.shields.io/maven-central/v/space.patakin.yuchatbotapi/yuchatbotapi-core)](https://central.sonatype.com/namespace/space.patakin.yuchatbotapi)
 [![API Docs](https://img.shields.io/badge/docs-Dokka-blue)](https://patakin13.github.io/YuChat-Bot-API/)
 
 Kotlin SDK для работы с [YuChat](https://yuchat.ai) Bot API — корпоративным мессенджером.
@@ -13,10 +13,10 @@ Kotlin SDK для работы с [YuChat](https://yuchat.ai) Bot API — кор
 
 | Артефакт | Обязательный | Описание |
 |---|---|---|
-| `ru.rt.yuchatbotapi:core` | ✅ да | Модели, HTTP-клиент, все API-методы (messages, chats, members, files, updates, webhooks, bot) |
-| `ru.rt.yuchatbotapi:java-api` | ❌ нет | Java-обёртка: все методы возвращают `CompletableFuture` вместо `suspend` |
-| `ru.rt.yuchatbotapi:polling` | ❌ нет | Long-polling с автоматическим управлением offset и DSL-диспетчер обновлений |
-| `ru.rt.yuchatbotapi:webhook` | ❌ нет | Встроенный Ktor-сервер для приёма webhook-обновлений |
+| `ru.rt.yuchatbotapi:yuchatbotapi-core` | ✅ да | Модели, HTTP-клиент, все API-методы (messages, chats, members, files, updates, webhooks, bot) |
+| `ru.rt.yuchatbotapi:yuchatbotapi-java` | ❌ нет | Java-обёртка: все методы возвращают `CompletableFuture` вместо `suspend` |
+| `ru.rt.yuchatbotapi:yuchatbotapi-polling` | ❌ нет | Long-polling с автоматическим управлением offset и DSL-диспетчер обновлений |
+| `ru.rt.yuchatbotapi:yuchatbotapi-webhook` | ❌ нет | Встроенный Ktor-сервер для приёма webhook-обновлений |
 
 **`core`** — единственный обязательный модуль. Он содержит все модели данных, HTTP-клиент и методы для вызова API. С ним одним можно отправлять сообщения, управлять чатами, участниками, файлами и даже вручную вызывать `getUpdates`.
 
@@ -37,14 +37,14 @@ includeBuild("/path/to/yuchatbotapi")
 // build.gradle.kts
 dependencies {
     // Для Kotlin — модели, клиент, все API-методы
-    implementation("ru.rt.yuchatbotapi:core:0.1.0")
+    implementation("ru.rt.yuchatbotapi:yuchatbotapi-core:0.1.0")
 
     // Для Java — вместо core, все методы через CompletableFuture
-    implementation("ru.rt.yuchatbotapi:java-api:0.1.0")
+    implementation("ru.rt.yuchatbotapi:yuchatbotapi-java:0.1.0")
 
     // Опционально — выберите один из способов получения обновлений:
-    implementation("ru.rt.yuchatbotapi:polling:0.1.0")   // long-polling + DSL диспетчер
-    implementation("ru.rt.yuchatbotapi:webhook:0.1.0")    // встроенный webhook-сервер
+    implementation("ru.rt.yuchatbotapi:yuchatbotapi-polling:0.1.0")   // long-polling + DSL диспетчер
+    implementation("ru.rt.yuchatbotapi:yuchatbotapi-webhook:0.1.0")    // встроенный webhook-сервер
 }
 ```
 
