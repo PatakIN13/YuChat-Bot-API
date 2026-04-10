@@ -38,7 +38,15 @@ class WebhookServer(
     private val port: Int = 8080,
     private val path: String = "/webhook",
     private val secretToken: String? = null,
-    private val apiVersion: Int = 1
+    private val apiVersion: Int = 1,
+    /**
+     * Игнорировать собственные сообщения бота.
+     *
+     * Если `true` (по умолчанию), при старте сервера бот определяет свой ID
+     * через `getMe()` и автоматически пропускает сообщения от самого себя
+     * в обработчиках, зарегистрированных через [handlers].
+     */
+    private val ignoreSelfMessages: Boolean = true
 ) {
     private val logger = LoggerFactory.getLogger(WebhookServer::class.java)
 
@@ -51,6 +59,7 @@ class WebhookServer(
     private var handlerV1: (suspend (UpdateV1) -> Unit)? = null
     private var handlerV2: (suspend (UpdateV2) -> Unit)? = null
     private var errorHandler: (suspend (Throwable) -> Unit)? = null
+    private var dispatcher: UpdateDispatcher? = null
     private var server: ApplicationEngine? = null
 
     /** Регистрация обработчика обновлений v1 */
@@ -84,10 +93,11 @@ class WebhookServer(
      * ```
      */
     fun handlers(configure: UpdateDispatcher.() -> Unit) {
-        val dispatcher = UpdateDispatcher().apply(configure)
-        handlerV1 = { update -> dispatcher.dispatchV1(update) }
-        handlerV2 = { update -> dispatcher.dispatchV2(update) }
-        dispatcher.onError?.let { handler -> errorHandler = handler }
+        val d = UpdateDispatcher().apply(configure)
+        dispatcher = d
+        handlerV1 = { update -> d.dispatchV1(update) }
+        handlerV2 = { update -> d.dispatchV2(update) }
+        d.onError?.let { handler -> errorHandler = handler }
     }
 
     /**
@@ -101,6 +111,37 @@ class WebhookServer(
         certificate: String? = null,
         wait: Boolean = false
     ) {
+        // Определяем ID бота для фильтрации собственных сообщений
+        if (ignoreSelfMessages && dispatcher != null) {
+            try {
+                val meInfo = client.bot.getMe()
+                dispatcher!!.botAccountId = meInfo.profile.accountId
+                logger.info("Self-message filtering enabled (accountId={})", meInfo.profile.accountId)
+
+                if (apiVersion == 2) {
+                    val membershipIds = mutableSetOf<ru.rt.yuchatbotapi.model.MembershipId>()
+                    for (ws in meInfo.workspaces) {
+                        try {
+                            val members = client.members.list(ws)
+                            members.find { it.profile?.profileId == meInfo.profile.accountId.value }
+                                ?.memberId?.let { membershipIds.add(it) }
+                        } catch (e: Exception) {
+                            logger.warn("Failed to resolve bot membershipId for workspace {}", ws, e)
+                        }
+                    }
+                    dispatcher!!.botMembershipIds = membershipIds
+
+                    val accountId = meInfo.profile.accountId
+                    dispatcher!!.membershipResolver = { workspaceId ->
+                        val members = client.members.list(workspaceId)
+                        members.find { it.profile?.profileId == accountId.value }?.memberId
+                    }
+                }
+            } catch (e: Exception) {
+                logger.warn("Failed to resolve bot identity, self-message filtering disabled", e)
+            }
+        }
+
         if (webhookUrl != null) {
             client.webhooks.setWebhook(SetWebhookRequest(
                 url = webhookUrl,

@@ -24,5 +24,14 @@ data class PollingOptions(
     /** Автоматически вызвать setUpdateSettings при apiVersion=2 */
     val autoConfigureV2: Boolean = true,
     /** Пропустить накопившиеся обновления при старте (сдвинуть offset до конца) */
-    val skipPending: Boolean = false
+    val skipPending: Boolean = false,
+    /**
+     * Игнорировать собственные сообщения бота.
+     *
+     * Если `true` (по умолчанию), при старте polling бот определяет свой ID
+     * через `getMe()` и автоматически пропускает сообщения от самого себя
+     * в обработчиках [onMessage]/[onCommand]. Обработчик [onUpdate] (raw)
+     * по-прежнему получает все обновления.
+     */
+    val ignoreSelfMessages: Boolean = true
 )

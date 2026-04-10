@@ -122,6 +122,32 @@ class LongPollingJavaBot @JvmOverloads constructor(
                 }
             }
 
+            // Определяем ID бота для фильтрации собственных сообщений
+            var botAccountId: AccountId? = null
+            val botMembershipIds = mutableSetOf<MembershipId>()
+
+            if (options.ignoreSelfMessages) {
+                try {
+                    val meInfo = kotlinClient.bot.getMe()
+                    botAccountId = meInfo.profile.accountId
+                    logger.info("Self-message filtering enabled (accountId={})", meInfo.profile.accountId)
+
+                    if (options.apiVersion == 2) {
+                        for (ws in meInfo.workspaces) {
+                            try {
+                                val members = kotlinClient.members.list(ws)
+                                members.find { it.profile?.profileId == meInfo.profile.accountId.value }
+                                    ?.memberId?.let { botMembershipIds.add(it) }
+                            } catch (e: Exception) {
+                                logger.warn("Failed to resolve bot membershipId for workspace {}", ws, e)
+                            }
+                        }
+                    }
+                } catch (e: Exception) {
+                    logger.warn("Failed to resolve bot identity, self-message filtering disabled", e)
+                }
+            }
+
             var offset: Long? = null
 
             // Пропускаем накопившиеся обновления при старте
@@ -154,13 +180,13 @@ class LongPollingJavaBot @JvmOverloads constructor(
                     if (options.apiVersion == 2) {
                         val updates = kotlinClient.updates.getUpdatesV2(offset, options.limit)
                         for (update in updates) {
-                            dispatchV2(update)
+                            dispatchV2(update, botAccountId, botMembershipIds, kotlinClient)
                             offset = update.updateId + 1
                         }
                     } else {
                         val updates = kotlinClient.updates.getUpdates(offset, options.limit)
                         for (update in updates) {
-                            dispatchV1(update)
+                            dispatchV1(update, botAccountId)
                             offset = update.updateId + 1
                         }
                     }
@@ -185,9 +211,13 @@ class LongPollingJavaBot @JvmOverloads constructor(
     /** Проверяет, запущен ли polling */
     fun isRunning(): Boolean = job?.isActive == true
 
-    private fun dispatchV1(update: UpdateV1) {
+    private fun dispatchV1(update: UpdateV1, botAccountId: AccountId?) {
         onUpdateV1?.accept(update)
         update.newChatMessage?.let { msg ->
+            if (botAccountId != null && msg.author == botAccountId) {
+                logger.debug("Ignoring self-message (v1): {}", msg.messageId)
+                return@let
+            }
             if (!tryDispatchCommand(msg.text, msg, commandsV1)) {
                 onMessageV1?.accept(msg)
             }
@@ -197,16 +227,39 @@ class LongPollingJavaBot @JvmOverloads constructor(
         update.leftFromChat?.let { onLeaveV1?.accept(it) }
     }
 
-    private fun dispatchV2(update: UpdateV2) {
+    private suspend fun dispatchV2(
+        update: UpdateV2,
+        botAccountId: AccountId?,
+        botMembershipIds: MutableSet<MembershipId>,
+        kotlinClient: YuChatBotClient
+    ) {
         onUpdateV2?.accept(update)
         update.message?.let { msg ->
+            if (botMembershipIds.contains(msg.membershipId)) {
+                logger.debug("Ignoring self-message (v2): {}", msg.messageId)
+                return@let
+            }
             if (!tryDispatchCommand(msg.content.text, msg, commandsV2)) {
                 onMessageV2?.accept(msg)
             }
         }
         update.notification?.let { onNotificationV2?.accept(it) }
         update.messageAction?.let { onMessageActionV2?.accept(it) }
-        update.workspaceInvite?.let { onWorkspaceInviteV2?.accept(it) }
+        update.workspaceInvite?.let { invite ->
+            if (botAccountId != null) {
+                try {
+                    val members = kotlinClient.members.list(invite.workspaceId)
+                    members.find { it.profile?.profileId == botAccountId.value }
+                        ?.memberId?.let { id ->
+                            botMembershipIds.add(id)
+                            logger.info("Resolved bot membershipId for new workspace {}: {}", invite.workspaceId, id)
+                        }
+                } catch (e: Exception) {
+                    logger.warn("Failed to resolve bot membershipId for workspace {}", invite.workspaceId, e)
+                }
+            }
+            onWorkspaceInviteV2?.accept(invite)
+        }
     }
 
     private fun <T> tryDispatchCommand(

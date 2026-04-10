@@ -37,14 +37,14 @@ includeBuild("/path/to/yuchatbotapi")
 // build.gradle.kts
 dependencies {
     // Для Kotlin — модели, клиент, все API-методы
-    implementation("ru.rt.yuchatbotapi:yuchatbotapi-core:0.2.0")
+    implementation("ru.rt.yuchatbotapi:yuchatbotapi-core:0.3.0")
 
     // Для Java — вместо core, все методы через CompletableFuture
-    implementation("ru.rt.yuchatbotapi:yuchatbotapi-java:0.2.0")
+    implementation("ru.rt.yuchatbotapi:yuchatbotapi-java:0.3.0")
 
     // Опционально — выберите один из способов получения обновлений:
-    implementation("ru.rt.yuchatbotapi:yuchatbotapi-polling:0.2.0")   // long-polling + DSL диспетчер
-    implementation("ru.rt.yuchatbotapi:yuchatbotapi-webhook:0.2.0")    // встроенный webhook-сервер
+    implementation("ru.rt.yuchatbotapi:yuchatbotapi-polling:0.3.0")   // long-polling + DSL диспетчер
+    implementation("ru.rt.yuchatbotapi:yuchatbotapi-webhook:0.3.0")    // встроенный webhook-сервер
 }
 ```
 
@@ -241,11 +241,14 @@ PollingOptions(
     pollDelayMs = 500L,       // задержка между запросами (мс)
     errorDelayMs = 5000L,     // задержка при ошибке (мс)
     autoConfigureV2 = true,   // авто-настройка updateSettings для v2
-    skipPending = false        // пропустить накопленные обновления при старте
+    skipPending = false,       // пропустить накопленные обновления при старте
+    ignoreSelfMessages = true  // игнорировать собственные сообщения бота
 )
 ```
 
 **`skipPending = true`** — при запуске бот пропустит все накопленные обновления и начнёт обрабатывать только новые. Полезно, когда бот перезапускается и не нужно отвечать на старые сообщения.
+
+**`ignoreSelfMessages = true`** (по умолчанию) — бот автоматически пропускает собственные сообщения в обработчиках `onMessage` / `onCommand`. Это предотвращает бесконечные циклы, когда бот отвечает на свои же сообщения. При старте бот определяет свой ID через `getMe()`, для v2 дополнительно резолвит `MembershipId` через `members.list()`. При приглашении в новый воркспейс `MembershipId` резолвится автоматически. Обработчики `onUpdate` / `onUpdateV2` (raw) по-прежнему получают все обновления.
 
 ## Webhook
 
@@ -258,7 +261,8 @@ val server = WebhookServer(
     client = bot,
     port = 8443,
     path = "/webhook",
-    secretToken = "my-secret"
+    secretToken = "my-secret",
+    ignoreSelfMessages = true   // по умолчанию true
 )
 
 // DSL-обработчики (как в polling)
