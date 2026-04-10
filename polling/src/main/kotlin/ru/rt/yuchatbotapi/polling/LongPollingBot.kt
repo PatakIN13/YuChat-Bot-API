@@ -4,7 +4,6 @@ import kotlinx.coroutines.*
 import org.slf4j.LoggerFactory
 import ru.rt.yuchatbotapi.api.YuChatBotClient
 import ru.rt.yuchatbotapi.handler.UpdateDispatcher
-import ru.rt.yuchatbotapi.model.MembershipId
 import ru.rt.yuchatbotapi.model.UpdateSetting
 
 /**
@@ -60,34 +59,23 @@ class LongPollingBot(
                 }
             }
 
-            // Определяем ID бота для фильтрации собственных сообщений
-            if (options.ignoreSelfMessages) {
+            // Фильтрация собственных сообщений бота
+            if (options.autoResolveBotId) {
                 try {
-                    val meInfo = client.bot.getMe()
-                    dispatcher.botAccountId = meInfo.profile.accountId
-                    logger.info("Self-message filtering enabled (accountId={})", meInfo.profile.accountId)
-
-                    if (options.apiVersion == 2) {
-                        val membershipIds = mutableSetOf<MembershipId>()
-                        for (ws in meInfo.workspaces) {
-                            try {
-                                val members = client.members.list(ws)
-                                members.find { it.profile?.profileId == meInfo.profile.accountId.value }
-                                    ?.memberId?.let { membershipIds.add(it) }
-                            } catch (e: Exception) {
-                                logger.warn("Failed to resolve bot membershipId for workspace {}", ws, e)
-                            }
-                        }
-                        dispatcher.botMembershipIds = membershipIds
-
-                        val accountId = meInfo.profile.accountId
-                        dispatcher.membershipResolver = { workspaceId ->
-                            val members = client.members.list(workspaceId)
-                            members.find { it.profile?.profileId == accountId.value }?.memberId
-                        }
-                    }
+                    val me = client.bot.getMe()
+                    dispatcher.botAccountId = me.profile.accountId
+                    logger.info("Self-message filtering enabled via getMe() (accountId={})", me.profile.accountId)
                 } catch (e: Exception) {
-                    logger.warn("Failed to resolve bot identity, self-message filtering disabled", e)
+                    logger.warn("autoResolveBotId: getMe() failed (v2 API unavailable?), falling back to manual botAccountId", e)
+                    options.botAccountId?.let {
+                        dispatcher.botAccountId = it
+                        logger.info("Self-message filtering enabled via manual botAccountId (accountId={})", it)
+                    }
+                }
+            } else {
+                options.botAccountId?.let {
+                    dispatcher.botAccountId = it
+                    logger.info("Self-message filtering enabled (accountId={})", it)
                 }
             }
 

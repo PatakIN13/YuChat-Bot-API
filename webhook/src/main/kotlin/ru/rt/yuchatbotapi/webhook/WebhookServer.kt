@@ -40,13 +40,18 @@ class WebhookServer(
     private val secretToken: String? = null,
     private val apiVersion: Int = 1,
     /**
-     * Игнорировать собственные сообщения бота.
+     * AccountId бота для фильтрации собственных сообщений.
      *
-     * Если `true` (по умолчанию), при старте сервера бот определяет свой ID
-     * через `getMe()` и автоматически пропускает сообщения от самого себя
-     * в обработчиках, зарегистрированных через [handlers].
+     * Если задан, обработчики [onMessage]/[onCommand], зарегистрированные через [handlers],
+     * автоматически пропускают сообщения от самого себя.
      */
-    private val ignoreSelfMessages: Boolean = true
+    private val botAccountId: ru.rt.yuchatbotapi.model.AccountId? = null,
+    /**
+     * Автоматическое определение ID бота через `getMe()` (v2 API).
+     *
+     * @see PollingOptions.autoResolveBotId
+     */
+    private val autoResolveBotId: Boolean = false
 ) {
     private val logger = LoggerFactory.getLogger(WebhookServer::class.java)
 
@@ -111,34 +116,23 @@ class WebhookServer(
         certificate: String? = null,
         wait: Boolean = false
     ) {
-        // Определяем ID бота для фильтрации собственных сообщений
-        if (ignoreSelfMessages && dispatcher != null) {
-            try {
-                val meInfo = client.bot.getMe()
-                dispatcher!!.botAccountId = meInfo.profile.accountId
-                logger.info("Self-message filtering enabled (accountId={})", meInfo.profile.accountId)
-
-                if (apiVersion == 2) {
-                    val membershipIds = mutableSetOf<ru.rt.yuchatbotapi.model.MembershipId>()
-                    for (ws in meInfo.workspaces) {
-                        try {
-                            val members = client.members.list(ws)
-                            members.find { it.profile?.profileId == meInfo.profile.accountId.value }
-                                ?.memberId?.let { membershipIds.add(it) }
-                        } catch (e: Exception) {
-                            logger.warn("Failed to resolve bot membershipId for workspace {}", ws, e)
-                        }
-                    }
-                    dispatcher!!.botMembershipIds = membershipIds
-
-                    val accountId = meInfo.profile.accountId
-                    dispatcher!!.membershipResolver = { workspaceId ->
-                        val members = client.members.list(workspaceId)
-                        members.find { it.profile?.profileId == accountId.value }?.memberId
+        // Фильтрация собственных сообщений бота
+        if (dispatcher != null) {
+            if (autoResolveBotId) {
+                try {
+                    val me = client.bot.getMe()
+                    dispatcher!!.botAccountId = me.profile.accountId
+                    logger.info("Self-message filtering enabled via getMe() (accountId={})", me.profile.accountId)
+                } catch (e: Exception) {
+                    logger.warn("autoResolveBotId: getMe() failed (v2 API unavailable?), falling back to manual botAccountId", e)
+                    if (botAccountId != null) {
+                        dispatcher!!.botAccountId = botAccountId
+                        logger.info("Self-message filtering enabled via manual botAccountId (accountId={})", botAccountId)
                     }
                 }
-            } catch (e: Exception) {
-                logger.warn("Failed to resolve bot identity, self-message filtering disabled", e)
+            } else if (botAccountId != null) {
+                dispatcher!!.botAccountId = botAccountId
+                logger.info("Self-message filtering enabled (accountId={})", botAccountId)
             }
         }
 

@@ -30,16 +30,7 @@ class UpdateDispatcher {
      * Набор MembershipId бота по воркспейсам (v2). Если не пуст, сообщения с совпадающим
      * [Message.membershipId] пропускаются в [onMessageV2]/[onCommandV2].
      */
-    private val _botMembershipIds = mutableSetOf<MembershipId>()
-    var botMembershipIds: Set<MembershipId>
-        get() = _botMembershipIds
-        set(value) { _botMembershipIds.clear(); _botMembershipIds.addAll(value) }
-
-    /**
-     * Резолвер MembershipId бота для нового воркспейса (v2).
-     * Вызывается автоматически при получении [WorkspaceInvite].
-     */
-    var membershipResolver: (suspend (WorkspaceId) -> MembershipId?)? = null
+    var botMembershipIds: Set<MembershipId> = emptySet()
 
     var onUpdateV1: (suspend (UpdateV1) -> Unit)? = null
     var onMessageV1: (suspend (NewChatMessage) -> Unit)? = null
@@ -149,19 +140,7 @@ class UpdateDispatcher {
         }
         update.notification?.let { onNotificationV2?.invoke(it) }
         update.messageAction?.let { onMessageActionV2?.invoke(it) }
-        update.workspaceInvite?.let { invite ->
-            membershipResolver?.let { resolver ->
-                try {
-                    resolver(invite.workspaceId)?.let { id ->
-                        _botMembershipIds.add(id)
-                        logger.info("Resolved bot membershipId for new workspace {}: {}", invite.workspaceId, id)
-                    }
-                } catch (e: Exception) {
-                    logger.warn("Failed to resolve bot membershipId for workspace {}", invite.workspaceId, e)
-                }
-            }
-            onWorkspaceInviteV2?.invoke(invite)
-        }
+        update.workspaceInvite?.let { onWorkspaceInviteV2?.invoke(it) }
     }
 
     private suspend fun <T> tryDispatchCommand(

@@ -37,14 +37,14 @@ includeBuild("/path/to/yuchatbotapi")
 // build.gradle.kts
 dependencies {
     // Для Kotlin — модели, клиент, все API-методы
-    implementation("ru.rt.yuchatbotapi:yuchatbotapi-core:0.3.0")
+    implementation("ru.rt.yuchatbotapi:yuchatbotapi-core:0.4.0")
 
     // Для Java — вместо core, все методы через CompletableFuture
-    implementation("ru.rt.yuchatbotapi:yuchatbotapi-java:0.3.0")
+    implementation("ru.rt.yuchatbotapi:yuchatbotapi-java:0.4.0")
 
     // Опционально — выберите один из способов получения обновлений:
-    implementation("ru.rt.yuchatbotapi:yuchatbotapi-polling:0.3.0")   // long-polling + DSL диспетчер
-    implementation("ru.rt.yuchatbotapi:yuchatbotapi-webhook:0.3.0")    // встроенный webhook-сервер
+    implementation("ru.rt.yuchatbotapi:yuchatbotapi-polling:0.4.0")   // long-polling + DSL диспетчер
+    implementation("ru.rt.yuchatbotapi:yuchatbotapi-webhook:0.4.0")    // встроенный webhook-сервер
 }
 ```
 
@@ -242,13 +242,23 @@ PollingOptions(
     errorDelayMs = 5000L,     // задержка при ошибке (мс)
     autoConfigureV2 = true,   // авто-настройка updateSettings для v2
     skipPending = false,       // пропустить накопленные обновления при старте
-    ignoreSelfMessages = true  // игнорировать собственные сообщения бота
+    botAccountId = AccountId("your-bot-profile-id"),  // фильтрация собственных сообщений (ручной)
+    autoResolveBotId = true   // автоопределение ID через getMe() (v2 API)
 )
 ```
 
 **`skipPending = true`** — при запуске бот пропустит все накопленные обновления и начнёт обрабатывать только новые. Полезно, когда бот перезапускается и не нужно отвечать на старые сообщения.
 
-**`ignoreSelfMessages = true`** (по умолчанию) — бот автоматически пропускает собственные сообщения в обработчиках `onMessage` / `onCommand`. Это предотвращает бесконечные циклы, когда бот отвечает на свои же сообщения. При старте бот определяет свой ID через `getMe()`, для v2 дополнительно резолвит `MembershipId` через `members.list()`. При приглашении в новый воркспейс `MembershipId` резолвится автоматически. Обработчики `onUpdate` / `onUpdateV2` (raw) по-прежнему получают все обновления.
+**`botAccountId`** — если задан, обработчики `onMessage` / `onCommand` автоматически пропускают сообщения, отправленные самим ботом. Это предотвращает бесконечные циклы. Получить ID можно через `/public/v1/member.list` — в ответе найти бота по имени и взять `profileId`. Обработчики `onUpdate` / `onUpdateV2` (raw) по-прежнему получают все обновления.
+
+**`autoResolveBotId = true`** — при старте бот автоматически вызывает `getMe()` (v2 API) для определения своего `AccountId`. Если v2 API недоступен — логируется предупреждение и используется ручной `botAccountId` как fallback. Рекомендуется использовать оба параметра вместе для надёжности:
+```kotlin
+PollingOptions(
+    botAccountId = AccountId("your-bot-profile-id"),  // fallback, если v2 недоступен
+    autoResolveBotId = true                           // автоопределение, когда v2 заработает
+)
+```
+
 
 ## Webhook
 
@@ -262,7 +272,8 @@ val server = WebhookServer(
     port = 8443,
     path = "/webhook",
     secretToken = "my-secret",
-    ignoreSelfMessages = true   // по умолчанию true
+    botAccountId = AccountId("your-bot-profile-id"),  // фильтрация собственных сообщений
+    autoResolveBotId = true                           // автоопределение через getMe()
 )
 
 // DSL-обработчики (как в polling)

@@ -122,31 +122,27 @@ class LongPollingJavaBot @JvmOverloads constructor(
                 }
             }
 
-            // Определяем ID бота для фильтрации собственных сообщений
-            var botAccountId: AccountId? = null
-            val botMembershipIds = mutableSetOf<MembershipId>()
-
-            if (options.ignoreSelfMessages) {
+            // Фильтрация собственных сообщений бота
+            var resolvedBotAccountId: AccountId? = null
+            if (options.autoResolveBotId) {
                 try {
-                    val meInfo = kotlinClient.bot.getMe()
-                    botAccountId = meInfo.profile.accountId
-                    logger.info("Self-message filtering enabled (accountId={})", meInfo.profile.accountId)
-
-                    if (options.apiVersion == 2) {
-                        for (ws in meInfo.workspaces) {
-                            try {
-                                val members = kotlinClient.members.list(ws)
-                                members.find { it.profile?.profileId == meInfo.profile.accountId.value }
-                                    ?.memberId?.let { botMembershipIds.add(it) }
-                            } catch (e: Exception) {
-                                logger.warn("Failed to resolve bot membershipId for workspace {}", ws, e)
-                            }
-                        }
-                    }
+                    val me = kotlinClient.bot.getMe()
+                    resolvedBotAccountId = me.profile.accountId
+                    logger.info("Self-message filtering enabled via getMe() (accountId={})", me.profile.accountId)
                 } catch (e: Exception) {
-                    logger.warn("Failed to resolve bot identity, self-message filtering disabled", e)
+                    logger.warn("autoResolveBotId: getMe() failed (v2 API unavailable?), falling back to manual botAccountId", e)
+                    resolvedBotAccountId = options.botAccountId
+                    if (resolvedBotAccountId != null) {
+                        logger.info("Self-message filtering enabled via manual botAccountId (accountId={})", resolvedBotAccountId)
+                    }
+                }
+            } else {
+                resolvedBotAccountId = options.botAccountId
+                if (resolvedBotAccountId != null) {
+                    logger.info("Self-message filtering enabled (accountId={})", resolvedBotAccountId)
                 }
             }
+            val botAccountId = resolvedBotAccountId
 
             var offset: Long? = null
 
@@ -180,7 +176,7 @@ class LongPollingJavaBot @JvmOverloads constructor(
                     if (options.apiVersion == 2) {
                         val updates = kotlinClient.updates.getUpdatesV2(offset, options.limit)
                         for (update in updates) {
-                            dispatchV2(update, botAccountId, botMembershipIds, kotlinClient)
+                            dispatchV2(update, botAccountId)
                             offset = update.updateId + 1
                         }
                     } else {
@@ -227,17 +223,12 @@ class LongPollingJavaBot @JvmOverloads constructor(
         update.leftFromChat?.let { onLeaveV1?.accept(it) }
     }
 
-    private suspend fun dispatchV2(
-        update: UpdateV2,
-        botAccountId: AccountId?,
-        botMembershipIds: MutableSet<MembershipId>,
-        kotlinClient: YuChatBotClient
-    ) {
+    private fun dispatchV2(update: UpdateV2, botAccountId: AccountId?) {
         onUpdateV2?.accept(update)
         update.message?.let { msg ->
-            if (botMembershipIds.contains(msg.membershipId)) {
-                logger.debug("Ignoring self-message (v2): {}", msg.messageId)
-                return@let
+            if (botAccountId != null && msg.messageType == MessageType.USER) {
+                // v2 не имеет прямого AccountId, фильтрация по botAccountId работает только для v1
+                // TODO: добавить фильтрацию по MembershipId когда getMe() (v2) заработает
             }
             if (!tryDispatchCommand(msg.content.text, msg, commandsV2)) {
                 onMessageV2?.accept(msg)
@@ -245,21 +236,7 @@ class LongPollingJavaBot @JvmOverloads constructor(
         }
         update.notification?.let { onNotificationV2?.accept(it) }
         update.messageAction?.let { onMessageActionV2?.accept(it) }
-        update.workspaceInvite?.let { invite ->
-            if (botAccountId != null) {
-                try {
-                    val members = kotlinClient.members.list(invite.workspaceId)
-                    members.find { it.profile?.profileId == botAccountId.value }
-                        ?.memberId?.let { id ->
-                            botMembershipIds.add(id)
-                            logger.info("Resolved bot membershipId for new workspace {}: {}", invite.workspaceId, id)
-                        }
-                } catch (e: Exception) {
-                    logger.warn("Failed to resolve bot membershipId for workspace {}", invite.workspaceId, e)
-                }
-            }
-            onWorkspaceInviteV2?.accept(invite)
-        }
+        update.workspaceInvite?.let { onWorkspaceInviteV2?.accept(it) }
     }
 
     private fun <T> tryDispatchCommand(
