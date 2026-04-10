@@ -122,6 +122,28 @@ class LongPollingJavaBot @JvmOverloads constructor(
                 }
             }
 
+            // Фильтрация собственных сообщений бота
+            var resolvedBotAccountId: AccountId? = null
+            if (options.autoResolveBotId) {
+                try {
+                    val me = kotlinClient.bot.getMe()
+                    resolvedBotAccountId = me.profile.accountId
+                    logger.info("Self-message filtering enabled via getMe() (accountId={})", me.profile.accountId)
+                } catch (e: Exception) {
+                    logger.warn("autoResolveBotId: getMe() failed (v2 API unavailable?), falling back to manual botAccountId", e)
+                    resolvedBotAccountId = options.botAccountId
+                    if (resolvedBotAccountId != null) {
+                        logger.info("Self-message filtering enabled via manual botAccountId (accountId={})", resolvedBotAccountId)
+                    }
+                }
+            } else {
+                resolvedBotAccountId = options.botAccountId
+                if (resolvedBotAccountId != null) {
+                    logger.info("Self-message filtering enabled (accountId={})", resolvedBotAccountId)
+                }
+            }
+            val botAccountId = resolvedBotAccountId
+
             var offset: Long? = null
 
             // Пропускаем накопившиеся обновления при старте
@@ -154,13 +176,13 @@ class LongPollingJavaBot @JvmOverloads constructor(
                     if (options.apiVersion == 2) {
                         val updates = kotlinClient.updates.getUpdatesV2(offset, options.limit)
                         for (update in updates) {
-                            dispatchV2(update)
+                            dispatchV2(update, botAccountId)
                             offset = update.updateId + 1
                         }
                     } else {
                         val updates = kotlinClient.updates.getUpdates(offset, options.limit)
                         for (update in updates) {
-                            dispatchV1(update)
+                            dispatchV1(update, botAccountId)
                             offset = update.updateId + 1
                         }
                     }
@@ -185,9 +207,13 @@ class LongPollingJavaBot @JvmOverloads constructor(
     /** Проверяет, запущен ли polling */
     fun isRunning(): Boolean = job?.isActive == true
 
-    private fun dispatchV1(update: UpdateV1) {
+    private fun dispatchV1(update: UpdateV1, botAccountId: AccountId?) {
         onUpdateV1?.accept(update)
         update.newChatMessage?.let { msg ->
+            if (botAccountId != null && msg.author == botAccountId) {
+                logger.debug("Ignoring self-message (v1): {}", msg.messageId)
+                return@let
+            }
             if (!tryDispatchCommand(msg.text, msg, commandsV1)) {
                 onMessageV1?.accept(msg)
             }
@@ -197,9 +223,13 @@ class LongPollingJavaBot @JvmOverloads constructor(
         update.leftFromChat?.let { onLeaveV1?.accept(it) }
     }
 
-    private fun dispatchV2(update: UpdateV2) {
+    private fun dispatchV2(update: UpdateV2, botAccountId: AccountId?) {
         onUpdateV2?.accept(update)
         update.message?.let { msg ->
+            if (botAccountId != null && msg.messageType == MessageType.USER) {
+                // v2 не имеет прямого AccountId, фильтрация по botAccountId работает только для v1
+                // TODO: добавить фильтрацию по MembershipId когда getMe() (v2) заработает
+            }
             if (!tryDispatchCommand(msg.content.text, msg, commandsV2)) {
                 onMessageV2?.accept(msg)
             }

@@ -59,6 +59,26 @@ class LongPollingBot(
                 }
             }
 
+            // Фильтрация собственных сообщений бота
+            if (options.autoResolveBotId) {
+                try {
+                    val me = client.bot.getMe()
+                    dispatcher.botAccountId = me.profile.accountId
+                    logger.info("Self-message filtering enabled via getMe() (accountId={})", me.profile.accountId)
+                } catch (e: Exception) {
+                    logger.warn("autoResolveBotId: getMe() failed (v2 API unavailable?), falling back to manual botAccountId", e)
+                    options.botAccountId?.let {
+                        dispatcher.botAccountId = it
+                        logger.info("Self-message filtering enabled via manual botAccountId (accountId={})", it)
+                    }
+                }
+            } else {
+                options.botAccountId?.let {
+                    dispatcher.botAccountId = it
+                    logger.info("Self-message filtering enabled (accountId={})", it)
+                }
+            }
+
             var offset: Long? = null
 
             // Пропускаем накопившиеся обновления при старте

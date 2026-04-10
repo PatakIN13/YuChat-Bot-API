@@ -24,5 +24,31 @@ data class PollingOptions(
     /** Автоматически вызвать setUpdateSettings при apiVersion=2 */
     val autoConfigureV2: Boolean = true,
     /** Пропустить накопившиеся обновления при старте (сдвинуть offset до конца) */
-    val skipPending: Boolean = false
+    val skipPending: Boolean = false,
+    /**
+     * AccountId бота для фильтрации собственных сообщений.
+     *
+     * Если задан, обработчики [onMessage]/[onCommand] автоматически пропускают
+     * сообщения, отправленные самим ботом. Обработчик [onUpdate] (raw)
+     * по-прежнему получает все обновления.
+     *
+     * Получить ID можно через `/public/v1/member.list` — в ответе найти бота
+     * по имени и взять `profileId`.
+     */
+    val botAccountId: ru.rt.yuchatbotapi.model.AccountId? = null,
+    /**
+     * Автоматическое определение ID бота через `getMe()` (v2 API).
+     *
+     * Если `true`, при старте бот пытается вызвать `getMe()` и получить свой `AccountId`.
+     * При успехе — фильтрация собственных сообщений включается автоматически.
+     * При ошибке (v2 API недоступен) — логируется предупреждение и используется
+     * ручной [botAccountId], если он задан.
+     *
+     * **Рекомендация:** сейчас v2 API может быть недоступен, поэтому рекомендуется
+     * использовать оба параметра вместе: `autoResolveBotId = true` + `botAccountId = AccountId("...")`.
+     * Когда v2 заработает, `botAccountId` можно будет убрать.
+     *
+     * @see botAccountId
+     */
+    val autoResolveBotId: Boolean = false
 )
