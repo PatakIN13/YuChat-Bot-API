@@ -1,5 +1,6 @@
 package ru.rt.yuchatbotapi.handler
 
+import org.slf4j.LoggerFactory
 import ru.rt.yuchatbotapi.model.*
 
 /**
@@ -10,8 +11,35 @@ import ru.rt.yuchatbotapi.model.*
  *
  * Команды (начинающиеся с `/`) обрабатываются через [onCommand] / [onCommandV2].
  * Если команда обработана, [onMessage] / [onMessageV2] не вызывается.
+ *
+ * Если включена фильтрация собственных сообщений ([botAccountId] / [botMembershipIds]),
+ * обработчики [onMessage]/[onCommand] пропускают сообщения от бота.
+ * Обработчики [onUpdate]/[onUpdateV2] (raw) по-прежнему получают все обновления.
  */
 class UpdateDispatcher {
+
+    private val logger = LoggerFactory.getLogger(UpdateDispatcher::class.java)
+
+    /**
+     * AccountId бота (v1). Если задан, сообщения с совпадающим [NewChatMessage.author]
+     * пропускаются в [onMessage]/[onCommand].
+     */
+    var botAccountId: AccountId? = null
+
+    /**
+     * Набор MembershipId бота по воркспейсам (v2). Если не пуст, сообщения с совпадающим
+     * [Message.membershipId] пропускаются в [onMessageV2]/[onCommandV2].
+     */
+    private val _botMembershipIds = mutableSetOf<MembershipId>()
+    var botMembershipIds: Set<MembershipId>
+        get() = _botMembershipIds
+        set(value) { _botMembershipIds.clear(); _botMembershipIds.addAll(value) }
+
+    /**
+     * Резолвер MembershipId бота для нового воркспейса (v2).
+     * Вызывается автоматически при получении [WorkspaceInvite].
+     */
+    var membershipResolver: (suspend (WorkspaceId) -> MembershipId?)? = null
 
     var onUpdateV1: (suspend (UpdateV1) -> Unit)? = null
     var onMessageV1: (suspend (NewChatMessage) -> Unit)? = null
@@ -95,6 +123,10 @@ class UpdateDispatcher {
     suspend fun dispatchV1(update: UpdateV1) {
         onUpdateV1?.invoke(update)
         update.newChatMessage?.let { msg ->
+            if (botAccountId != null && msg.author == botAccountId) {
+                logger.debug("Ignoring self-message (v1): {}", msg.messageId)
+                return@let
+            }
             if (!tryDispatchCommand(msg.text, msg, commandsV1)) {
                 onMessageV1?.invoke(msg)
             }
@@ -107,13 +139,29 @@ class UpdateDispatcher {
     suspend fun dispatchV2(update: UpdateV2) {
         onUpdateV2?.invoke(update)
         update.message?.let { msg ->
+            if (botMembershipIds.contains(msg.membershipId)) {
+                logger.debug("Ignoring self-message (v2): {}", msg.messageId)
+                return@let
+            }
             if (!tryDispatchCommand(msg.content.text, msg, commandsV2)) {
                 onMessageV2?.invoke(msg)
             }
         }
         update.notification?.let { onNotificationV2?.invoke(it) }
         update.messageAction?.let { onMessageActionV2?.invoke(it) }
-        update.workspaceInvite?.let { onWorkspaceInviteV2?.invoke(it) }
+        update.workspaceInvite?.let { invite ->
+            membershipResolver?.let { resolver ->
+                try {
+                    resolver(invite.workspaceId)?.let { id ->
+                        _botMembershipIds.add(id)
+                        logger.info("Resolved bot membershipId for new workspace {}: {}", invite.workspaceId, id)
+                    }
+                } catch (e: Exception) {
+                    logger.warn("Failed to resolve bot membershipId for workspace {}", invite.workspaceId, e)
+                }
+            }
+            onWorkspaceInviteV2?.invoke(invite)
+        }
     }
 
     private suspend fun <T> tryDispatchCommand(

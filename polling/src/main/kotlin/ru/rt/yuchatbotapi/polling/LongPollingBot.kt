@@ -4,6 +4,7 @@ import kotlinx.coroutines.*
 import org.slf4j.LoggerFactory
 import ru.rt.yuchatbotapi.api.YuChatBotClient
 import ru.rt.yuchatbotapi.handler.UpdateDispatcher
+import ru.rt.yuchatbotapi.model.MembershipId
 import ru.rt.yuchatbotapi.model.UpdateSetting
 
 /**
@@ -56,6 +57,37 @@ class LongPollingBot(
                     logger.error("Failed to configure v2 updates", e)
                     dispatcher.onError?.invoke(e)
                     return@launch
+                }
+            }
+
+            // Определяем ID бота для фильтрации собственных сообщений
+            if (options.ignoreSelfMessages) {
+                try {
+                    val meInfo = client.bot.getMe()
+                    dispatcher.botAccountId = meInfo.profile.accountId
+                    logger.info("Self-message filtering enabled (accountId={})", meInfo.profile.accountId)
+
+                    if (options.apiVersion == 2) {
+                        val membershipIds = mutableSetOf<MembershipId>()
+                        for (ws in meInfo.workspaces) {
+                            try {
+                                val members = client.members.list(ws)
+                                members.find { it.profile?.profileId == meInfo.profile.accountId.value }
+                                    ?.memberId?.let { membershipIds.add(it) }
+                            } catch (e: Exception) {
+                                logger.warn("Failed to resolve bot membershipId for workspace {}", ws, e)
+                            }
+                        }
+                        dispatcher.botMembershipIds = membershipIds
+
+                        val accountId = meInfo.profile.accountId
+                        dispatcher.membershipResolver = { workspaceId ->
+                            val members = client.members.list(workspaceId)
+                            members.find { it.profile?.profileId == accountId.value }?.memberId
+                        }
+                    }
+                } catch (e: Exception) {
+                    logger.warn("Failed to resolve bot identity, self-message filtering disabled", e)
                 }
             }
 
